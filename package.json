@@ -1,0 +1,41 @@
+{
+  "name": "crud-reducer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "test": "yarn jest"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "yarn test"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --rule 'no-console: [\"error\", { allow: [\"warn\", \"error\"] }]'  --max-warnings=0",
+      "prettier --ignore-path .eslintignore --write"
+    ]
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.8",
+    "@types/qs": "^6.9.4",
+    "@types/react": "^16.9.44",
+    "@typescript-eslint/eslint-plugin": "3.8.0",
+    "@typescript-eslint/parser": "3.8.0",
+    "eslint": "7.6.0",
+    "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-react-hooks": "^4.0.8",
+    "husky": "^4.2.5",
+    "jest": "^26.2.2",
+    "lint-staged": "^10.2.11",
+    "prettier": "^2.0.5",
+    "qs": "^6.9.4",
+    "react": "^16.13.1",
+    "ts-jest": "^26.1.4",
+    "typescript": "3.8.3"
+  }
+}
