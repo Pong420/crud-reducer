@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+
 // https://medium.com/dailyjs/typescript-create-a-condition-based-subset-types-9d902cea5b8c
 export type FilterFlags<Base, Condition> = {
   [Key in keyof Base]: Base[Key] extends Condition ? Key : never;
@@ -16,6 +18,10 @@ export interface AnyAction {
 export interface ActionCreators {
   [k: string]: (...args: any[]) => AnyAction;
 }
+
+export type UnionCRUDActions<
+  T extends Record<string, (...args: any[]) => any>
+> = ReturnType<T[keyof T]>;
 
 export interface List<I extends {}> {
   type: 'LIST';

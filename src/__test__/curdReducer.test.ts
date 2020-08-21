@@ -24,6 +24,12 @@ describe('crud reducer', () => {
     [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id');
   });
 
+  test('default', () => {
+    const state: any = undefined;
+    const action: any = { type: 'action' };
+    expect(crudReducer(state, action)).toEqual(initialState);
+  });
+
   test('list', () => {
     function list(initial: typeof state, payload: Schema[]) {
       const state = crudReducer(initial, {
@@ -128,39 +134,83 @@ describe('crud reducer', () => {
     expect(state1).toEqual(initialState);
   });
 
-  test('paginate', () => {
-    const mocks1 = createMocks(10);
-    const state0 = crudReducer(initialState, {
-      type: 'PAGINATE',
-      payload: mocks1
+  describe('pagination', () => {
+    test('normal', () => {
+      const mocks1 = createMocks(10);
+      const state0 = crudReducer(initialState, {
+        type: 'PAGINATE',
+        payload: mocks1
+      });
+
+      expect(state0.list).toEqual(mocks1);
+      expect(state0.ids).toEqual(mocks1.map(i => i.id));
+      expect(state0.byIds).toEqual(
+        mocks1.reduce((r, i) => ({ ...r, [i.id]: i }), {})
+      );
+      expect(state0.pageNo).toBe(1);
+      expect(state0.total).toBe(mocks1.length);
+
+      const mocks2 = createMocks(10);
+      const total = mocks2.length * 5;
+      const pageNo = 2;
+      const pageSize = 10;
+      const state1 = crudReducer(state0, {
+        type: 'PAGINATE',
+        payload: {
+          total,
+          pageNo,
+          data: mocks2
+        }
+      });
+
+      expect(state1.list.slice(0, pageNo * pageSize)).toEqual([
+        ...mocks1,
+        ...mocks2
+      ]);
+      expect(state1.ids.slice(0, pageNo * pageSize)).toEqual(
+        [...mocks1, ...mocks2].map(i => i.id)
+      );
+      expect(state1.byIds).toEqual(
+        [...mocks1, ...mocks2].reduce((r, i) => ({ ...r, [i.id]: i }), {})
+      );
+      expect(state1.pageNo).toBe(2);
+      expect(state1.total).toBe(total);
     });
 
-    expect(state0.list).toEqual(mocks1);
-    expect(state0.ids).toEqual(mocks1.map(i => i.id));
-    expect(state0.byIds).toEqual(
-      mocks1.reduce((r, i) => ({ ...r, [i.id]: i }), {})
-    );
-    expect(state0.pageNo).toBe(1);
-    expect(state0.total).toBe(mocks1.length);
+    test.each([true, false])('prefill is %s', prefill => {
+      [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
+        prefill
+      });
 
-    const mocks2 = createMocks(10);
-    const total = mocks2.length * 5;
-    const state1 = crudReducer(state0, {
-      type: 'PAGINATE',
-      payload: {
-        total,
-        pageNo: 2,
-        data: mocks2
+      const mocks1 = createMocks(10);
+      const pageNo = 4;
+      const pageSize = 10;
+      const total = pageNo * pageSize * 2;
+      const state = crudReducer(initialState, {
+        type: 'PAGINATE',
+        payload: { pageNo, data: mocks1, total: pageNo * pageSize * 2 }
+      });
+
+      if (prefill) {
+        expect(state.total).toBe(total);
+        expect(state.ids.length).toBe(total);
+        expect(state.list.length).toBe(total);
+
+        expect(
+          state.ids.slice(0, (pageNo - 1) * pageSize).every(i => i === null)
+        );
+        expect(
+          state.list
+            .slice(0, (pageNo - 1) * pageSize)
+            .every(i => Object.keys(i).length === 0)
+        );
+      } else {
+        expect(state.pageNo).toBe(1);
+        expect(state.total).toBe(0);
+        expect(state.ids.length).toBe(mocks1.length);
+        expect(state.list.length).toBe(mocks1.length);
       }
     });
-
-    expect(state1.list).toEqual([...mocks1, ...mocks2]);
-    expect(state1.ids).toEqual([...mocks1, ...mocks2].map(i => i.id));
-    expect(state1.byIds).toEqual(
-      [...mocks1, ...mocks2].reduce((r, i) => ({ ...r, [i.id]: i }), {})
-    );
-    expect(state1.pageNo).toBe(2);
-    expect(state1.total).toBe(total);
   });
 
   test('params', () => {
