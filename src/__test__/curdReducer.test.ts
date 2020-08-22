@@ -211,6 +211,28 @@ describe('crud reducer', () => {
         expect(state.list.length).toBe(mocks1.length);
       }
     });
+
+    test('prefill typings', () => {
+      const [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>(
+        'id',
+        { prefill: false }
+      );
+
+      const mock = createMock();
+      let state = crudReducer(initialState, { type: 'CREATE', payload: mock });
+      state.list.map(item => {
+        state = crudReducer(initialState, {
+          type: 'UPDATE',
+          payload: { ...item, value: '123123' }
+        });
+        state = crudReducer(initialState, {
+          type: 'DELETE',
+          payload: { ...item, id: mock.id }
+        });
+      });
+
+      expect(state).toEqual(initialState);
+    });
   });
 
   test('params', () => {
