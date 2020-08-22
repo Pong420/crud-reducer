@@ -4,6 +4,8 @@ CRUD reducer for react/redux
 
 ## Usage
 
+[CodeSandbox](https://codesandbox.io/s/crud-reducer-todo-11rzj?file=/src/App.tsx)
+
 > redux
 
 ```ts
