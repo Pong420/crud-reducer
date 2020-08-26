@@ -4,9 +4,16 @@ CRUD reducer for react/redux
 
 ## Usage
 
-[CodeSandbox](https://codesandbox.io/s/crud-reducer-todo-11rzj?file=/src/App.tsx)
+```
+git clone https://github.com/Pong420/rc-field-form.git --branch=dist crud-reducer
+rm -rf ./crud-reducer/.git
+```
 
-> redux
+## Demo
+
+- [TODO List - CodeSandbox](https://codesandbox.io/s/crud-reducer-todo-11rzj?file=/src/App.tsx)
+
+- Redux
 
 ```ts
 import { createCRUDReducer } from '../crudReducer';
@@ -14,7 +21,7 @@ import { createCRUDReducer } from '../crudReducer';
 const [initialState, reducer] = createCRUDReducer<Post, 'id'>('id');
 ```
 
-> React hooks
+- React hooks
 
 ```ts
 import React, { useEffect } from 'react';
