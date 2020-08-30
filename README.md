@@ -13,7 +13,7 @@ rm -rf ./crud-reducer/.git
 
 - [TODO List - CodeSandbox](https://codesandbox.io/s/crud-reducer-todo-11rzj?file=/src/App.tsx)
 
-* React hooks - [Details](src/examples/hooks.ts)
+* React hooks - [Details](./src/examples/hooks.tsx)
 
 ```ts
 import React, { useEffect } from 'react';
@@ -47,7 +47,7 @@ export function Component() {
 }
 ```
 
-- Redux - [Details](src/examples/redux.ts)
+- Redux - [Details](./src/examples/redux.ts)
 
 ```ts
 export type TodoActions = CRUDActions<Todo, 'id'>;
@@ -83,7 +83,7 @@ export function Component() {
 }
 ```
 
-- Extend CRUD Reducer - [Details](src/examples/extendsReducer.ts)
+- Extend CRUD Reducer - [Details](./src/examples/extendsReducer.ts)
 
 ```ts
 import { createCRUDReducer } from '../crudReducer';
