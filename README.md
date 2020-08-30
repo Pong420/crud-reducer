@@ -5,7 +5,7 @@ CRUD reducer for react/redux
 ## Usage
 
 ```
-git clone https://github.com/Pong420/rc-field-form.git --branch=dist crud-reducer
+git clone https://github.com/Pong420/crud-reducer.git --branch=dist crud-reducer
 rm -rf ./crud-reducer/.git
 ```
 
