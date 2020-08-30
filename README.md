@@ -9,19 +9,11 @@ git clone https://github.com/Pong420/rc-field-form.git --branch=dist crud-reduce
 rm -rf ./crud-reducer/.git
 ```
 
-## Demo
+## Examples
 
 - [TODO List - CodeSandbox](https://codesandbox.io/s/crud-reducer-todo-11rzj?file=/src/App.tsx)
 
-- Redux
-
-```ts
-import { createCRUDReducer } from '../crudReducer';
-
-const [initialState, reducer] = createCRUDReducer<Post, 'id'>('id');
-```
-
-- React hooks
+* React hooks - [Details](src/examples/hooks.ts)
 
 ```ts
 import React, { useEffect } from 'react';
@@ -53,4 +45,96 @@ export function Component() {
     </div>
   );
 }
+```
+
+- Redux - [Details](src/examples/redux.ts)
+
+```ts
+export type TodoActions = CRUDActions<Todo, 'id'>;
+
+export const todoActions = createCRUDActionsCreators<Todo, 'id'>();
+
+export const useTodoActions = () => useActions(todoActions);
+
+export const [, todoReducer] = createCRUDReducer<Todo, 'id'>('id');
+
+// usage
+export function Component() {
+  const actions = useTodoActions();
+
+  const dispatch = useDispatch();
+
+  return React.createElement<HTMLAttributes<HTMLButtonElement>>(
+    'button',
+    {
+      onClick: () => {
+        const payload = {
+          id: String(Math.random()),
+          content: String(Math.random())
+        };
+
+        actions.create(payload);
+        // or
+        dispatch(todoActions.create(payload));
+      }
+    },
+    'Add todo'
+  );
+}
+```
+
+- Extend CRUD Reducer - [Details](src/examples/extendsReducer.ts)
+
+```ts
+import { createCRUDReducer } from '../crudReducer';
+import { createCRUDActionsCreators } from '../crudActions';
+import { UnionActions } from '../useActions';
+
+const [initialState, reducer] = createCRUDReducer<Todo, 'id'>('id');
+
+const actions = {
+  ...createCRUDActionsCreators<Todo, 'id'>(),
+  extraAction: (payload: boolean) => ({
+    type: 'ExtraAction' as const, // or enum
+    payload
+  })
+};
+
+type Actions = UnionActions<typeof actions>;
+
+export function todoReducer(state = initialState, action: Actions) {
+  switch (action.type) {
+    case 'ExtraAction':
+      return state;
+    default:
+      return reducer(state, action);
+  }
+}
+```
+
+- Pagination - WIP
+
+## Utils / Types
+
+- `UnionActions` and `ExtractAction`
+
+```typescript
+import { UnionActions, ExtractAction } from '../';
+
+function actions4() {
+  return { type: 'Action4' as const };
+}
+
+// An object contains function that return { type: string, payload? any }
+// your may use enum instead of `as const`
+const actions = {
+  action1: () => ({ type: 'Action1' as const }),
+  action2: (payload: boolean) => ({ type: 'Action2' as const, payload }),
+  action3: (payload?: boolean) => ({ type: 'Action3' as const, payload }),
+  actions4
+};
+
+type Actions = UnionActions<typeof actions>;
+
+type Aaction3 = ExtractAction<Actions, 'Action3'>;
 ```
