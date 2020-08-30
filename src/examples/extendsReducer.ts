@@ -1,6 +1,8 @@
-import { createCRUDReducer } from '../crudReducer';
-import { createCRUDActionsCreators } from '../crudActions';
-import { UnionActions } from '../useActions';
+import {
+  createCRUDReducer,
+  createCRUDActionsCreators,
+  UnionActions
+} from '../';
 
 interface Todo {
   id: string;

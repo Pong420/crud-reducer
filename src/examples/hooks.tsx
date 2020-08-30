@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { createUseCRUDReducer } from '../useCRUDReducer';
+import { createUseCRUDReducer } from '../';
 
 interface Post {
   id: string;

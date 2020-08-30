@@ -17,8 +17,7 @@ rm -rf ./crud-reducer/.git
 
 ```ts
 import React, { useEffect } from 'react';
-import { createCRUDReducer } from '../crudReducer';
-import { createUseCRUDReducer } from '../useCRUDReducer';
+import { createUseCRUDReducer } from '../';
 
 interface Post {
   id: string;
@@ -50,6 +49,8 @@ export function Component() {
 - Redux - [Details](./src/examples/redux.ts)
 
 ```ts
+import { createCRUDReducer, createCRUDActionsCreators, CRUDActions, useActions } from '../';
+
 export type TodoActions = CRUDActions<Todo, 'id'>;
 
 export const todoActions = createCRUDActionsCreators<Todo, 'id'>();
@@ -86,9 +87,7 @@ export function Component() {
 - Extend CRUD Reducer - [Details](./src/examples/extendsReducer.ts)
 
 ```ts
-import { createCRUDReducer } from '../crudReducer';
-import { createCRUDActionsCreators } from '../crudActions';
-import { UnionActions } from '../useActions';
+import { createCRUDReducer, createCRUDActionsCreators, UnionActions } from '../';
 
 const [initialState, reducer] = createCRUDReducer<Todo, 'id'>('id');
 

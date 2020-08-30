@@ -1,8 +1,11 @@
 import React, { HTMLAttributes } from 'react';
 import { useDispatch } from 'react-redux';
-import { createCRUDReducer } from '../crudReducer';
-import { createCRUDActionsCreators, CRUDActions } from '../crudActions';
-import { useActions } from '../useActions';
+import {
+  createCRUDReducer,
+  createCRUDActionsCreators,
+  CRUDActions,
+  useActions
+} from '../';
 
 interface Todo {
   id: string;
