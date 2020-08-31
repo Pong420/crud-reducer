@@ -3,9 +3,9 @@
 import { Key, CRUDActions } from './crudActions';
 
 export interface CRUDState<I, Prefill extends boolean = true> {
+  ids: string[];
   byIds: Record<string, I>;
-  ids: Prefill extends true ? Array<string | null> : string[];
-  list: Prefill extends true ? Array<I | Partial<I>> : I[];
+  list: Prefill extends true ? Array<I | null> : I[];
   pageNo: number;
   pageSize: number;
   total: number;
@@ -19,7 +19,16 @@ export type CRUDReducer<I, K extends Key<I>, Prefill extends boolean = true> = (
 
 export interface CreateCRUDReducerOptions {
   prefill?: boolean;
+  keyGenerator?: (index: number) => string;
 }
+
+const _keyGenerator = (() => {
+  let count = 0;
+  return function () {
+    count++;
+    return `mock-${count}`;
+  };
+})();
 
 export function createCRUDReducer<I, K extends Key<I>>(
   key: K,
@@ -33,7 +42,7 @@ export function createCRUDReducer<I, K extends Key<I>>(
 
 export function createCRUDReducer<I, K extends Key<I>>(
   key: K,
-  options: CreateCRUDReducerOptions = {}
+  options?: CreateCRUDReducerOptions
 ): [CRUDState<I, boolean>, CRUDReducer<I, K, boolean>] {
   const defaultState: CRUDState<I, boolean> = {
     byIds: {},
@@ -45,7 +54,7 @@ export function createCRUDReducer<I, K extends Key<I>>(
     params: {}
   };
 
-  const { prefill = true } = options;
+  const { prefill = true, keyGenerator = _keyGenerator } = options || {};
 
   const reducer: CRUDReducer<I, K, boolean> = (
     state = defaultState,
@@ -86,6 +95,8 @@ export function createCRUDReducer<I, K extends Key<I>>(
             payload: data
           });
 
+          const length = total - state.ids.length;
+
           return {
             ...state,
             total,
@@ -96,11 +107,14 @@ export function createCRUDReducer<I, K extends Key<I>>(
               ...byIds
             },
             ids: insert(
-              [...state.ids, ...new Array<null>(total).fill(null)],
+              [
+                ...state.ids,
+                ...Array.from({ length }, (_, index) => keyGenerator(index))
+              ],
               ids
             ).slice(0, total),
             list: insert(
-              [...state.list, ...new Array<Partial<I>>(total).fill({})],
+              [...state.list, ...Array.from({ length }, () => null)],
               list
             ).slice(0, total)
           };

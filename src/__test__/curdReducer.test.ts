@@ -195,6 +195,28 @@ describe('crud reducer', () => {
       expect(state0.pageSize).toBe(pageSize);
     });
 
+    test('keyGenerator', () => {
+      [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
+        keyGenerator: index => `idx-${index}`
+      });
+
+      const mocks = createMocks(10);
+      const total = mocks.length * 5;
+      const pageNo = 1;
+      const state0 = crudReducer(initialState, {
+        type: 'PAGINATE',
+        payload: {
+          total,
+          pageNo,
+          data: mocks
+        }
+      });
+
+      expect(
+        state0.ids.slice(mocks.length).every(id => id.startsWith('idx'))
+      ).toBeTruthy();
+    });
+
     test.each([true, false])('prefill is %s', prefill => {
       [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
         prefill
@@ -215,12 +237,21 @@ describe('crud reducer', () => {
         expect(state.list.length).toBe(total);
 
         expect(
-          state.ids.slice(0, (pageNo - 1) * pageSize).every(i => i === null)
-        );
-        expect(
-          state.list
+          state.ids
             .slice(0, (pageNo - 1) * pageSize)
-            .every(i => Object.keys(i).length === 0)
+            .every(i => typeof i === 'string')
+        );
+
+        // should not duplicated
+        expect(
+          state.ids.reduce(
+            (ids, id) => (ids.includes(id) ? ids : [...ids, id]),
+            [] as string[]
+          )
+        ).toEqual(state.ids);
+
+        expect(
+          state.list.slice(0, (pageNo - 1) * pageSize).every(i => i !== null)
         );
       } else {
         expect(state.pageNo).toBe(1);
