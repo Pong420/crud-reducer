@@ -10,6 +10,8 @@ export type AllowedNames<Base, Condition> = FilterFlags<
   Condition
 >[keyof Base];
 
+export type Key<I> = AllowedNames<I, string>;
+
 export interface AnyAction {
   type: string;
   [extraProps: string]: any;
@@ -19,26 +21,26 @@ export interface ActionCreators {
   [k: string]: (...args: any[]) => AnyAction;
 }
 
-export interface List<I extends {}> {
+export interface List<I> {
   type: 'LIST';
   payload: I[];
 }
 
-export interface Create<I extends {}> {
+export interface Create<I> {
   type: 'CREATE';
   payload: I;
 }
 
-export type OnUpdate<I extends {}, K extends AllowedNames<I, string>> = (
+export type OnUpdate<I, K extends Key<I>> = (
   payload: Partial<I> & { [T in K]: string }
 ) => void;
 
-export interface Update<I extends {}, K extends AllowedNames<I, string>> {
+export interface Update<I, K extends Key<I>> {
   type: 'UPDATE';
   payload: Partial<I> & { [T in K]: string };
 }
 
-export interface Delete<I extends {}, K extends AllowedNames<I, string>> {
+export interface Delete<I, K extends Key<I>> {
   type: 'DELETE';
   payload: { [T in K]: string };
 }
@@ -51,7 +53,7 @@ export type PaginatePayload<I> =
       pageNo: number;
     };
 
-export interface Paginate<I extends {}> {
+export interface Paginate<I> {
   type: 'PAGINATE';
   payload: PaginatePayload<I>;
 }
@@ -65,7 +67,7 @@ export interface Reset {
   type: 'RESET';
 }
 
-export type CRUDActions<I extends {}, K extends AllowedNames<I, string>> =
+export type CRUDActions<I, K extends Key<I>> =
   | List<I>
   | Create<I>
   | Update<I, K>
@@ -85,10 +87,7 @@ export type ActionCreator<
   ? (payload: ExtractAction<T1, T1['type']>['payload']) => T1
   : (payload?: ExtractAction<T1, T1['type']>['payload']) => T1;
 
-export type CRUDActionCreators<
-  I extends {},
-  K extends AllowedNames<I, string>
-> = {
+export type CRUDActionCreators<I, K extends Key<I>> = {
   list: ActionCreator<List<I>>;
   create: ActionCreator<Create<I>>;
   update: ActionCreator<Update<I, K>>;
@@ -99,8 +98,8 @@ export type CRUDActionCreators<
 };
 
 export function createCRUDActionsCreators<
-  I extends {},
-  K extends AllowedNames<I, string>
+  I,
+  K extends Key<I>
 >(): CRUDActionCreators<I, K> {
   return {
     list: payload => ({ type: 'LIST', payload }),

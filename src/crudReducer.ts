@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { AllowedNames, CRUDActions } from './crudActions';
+import { Key, CRUDActions } from './crudActions';
 
-export interface CRUDState<I extends {}, Prefill extends boolean = true> {
+export interface CRUDState<I, Prefill extends boolean = true> {
   byIds: Record<string, I>;
   ids: Prefill extends true ? Array<string | null> : string[];
   list: Prefill extends true ? Array<I | Partial<I>> : I[];
@@ -12,11 +12,7 @@ export interface CRUDState<I extends {}, Prefill extends boolean = true> {
   params: any;
 }
 
-export type CRUDReducer<
-  I extends {},
-  K extends AllowedNames<I, string>,
-  Prefill extends boolean = true
-> = (
+export type CRUDReducer<I, K extends Key<I>, Prefill extends boolean = true> = (
   state: CRUDState<I, Prefill>,
   action: CRUDActions<I, K>
 ) => CRUDState<I, Prefill>;
@@ -25,26 +21,17 @@ export interface CreateCRUDReducerOptions {
   prefill?: boolean;
 }
 
-export function createCRUDReducer<
-  I extends {},
-  K extends AllowedNames<I, string>
->(
+export function createCRUDReducer<I, K extends Key<I>>(
   key: K,
   options: CreateCRUDReducerOptions & { prefill: false }
 ): [CRUDState<I, false>, CRUDReducer<I, K, false>];
 
-export function createCRUDReducer<
-  I extends {},
-  K extends AllowedNames<I, string>
->(
+export function createCRUDReducer<I, K extends Key<I>>(
   key: K,
   options?: CreateCRUDReducerOptions
 ): [CRUDState<I, true>, CRUDReducer<I, K, true>];
 
-export function createCRUDReducer<
-  I extends {},
-  K extends AllowedNames<I, string>
->(
+export function createCRUDReducer<I, K extends Key<I>>(
   key: K,
   options: CreateCRUDReducerOptions = {}
 ): [CRUDState<I, boolean>, CRUDReducer<I, K, boolean>] {
@@ -81,7 +68,7 @@ export function createCRUDReducer<
             return [
               ...arr.slice(0, start),
               ...ids,
-              ...arr.slice(start + pageSize)
+              ...arr.slice(start + state.pageSize)
             ];
           };
 
@@ -110,12 +97,10 @@ export function createCRUDReducer<
         })();
 
       case 'LIST':
-        return (() => {
-          return action.payload.reduce(
-            (state, payload) => reducer(state, { type: 'CREATE', payload }),
-            defaultState
-          );
-        })();
+        return action.payload.reduce(
+          (state, payload) => reducer(state, { type: 'CREATE', payload }),
+          defaultState
+        );
 
       case 'CREATE':
         return (() => {
@@ -150,7 +135,7 @@ export function createCRUDReducer<
         return (() => {
           const id = action.payload[key];
           const index = state.ids.indexOf(id);
-          const { [id]: deleted, ...byIds } = state.byIds;
+          const { [id]: _deleted, ...byIds } = state.byIds;
           return {
             ...state,
             byIds,
@@ -160,18 +145,20 @@ export function createCRUDReducer<
         })();
 
       case 'PARAMS':
-        const { pageNo, pageSize, ...params } = action.payload;
-        const toNum = (value: unknown, num: number) =>
-          typeof value === 'undefined' || isNaN(Number(value))
-            ? num
-            : Number(value);
+        return (() => {
+          const { pageNo, pageSize, ...params } = action.payload;
+          const toNum = (value: unknown, num: number) =>
+            typeof value === 'undefined' || isNaN(Number(value))
+              ? num
+              : Number(value);
 
-        return {
-          ...state,
-          pageNo: toNum(pageNo, state.pageNo),
-          pageSize: toNum(pageSize, state.pageSize),
-          params
-        };
+          return {
+            ...state,
+            pageNo: toNum(pageNo, state.pageNo),
+            pageSize: toNum(pageSize, state.pageSize),
+            params
+          };
+        })();
 
       case 'RESET':
         return defaultState;

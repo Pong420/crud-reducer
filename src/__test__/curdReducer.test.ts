@@ -110,8 +110,8 @@ describe('crud reducer', () => {
     expect(state1.list).toEqual([]);
     expect(state1.ids).toEqual([]);
     expect(state1.byIds).toEqual({});
+    expect(state1.byIds[mock.id]).toBeUndefined();
 
-    // should not be ignored
     const state2 = crudReducer(state1, {
       type: 'DELETE',
       payload: { id: 'qwe' }
@@ -252,5 +252,12 @@ describe('crud reducer', () => {
     expect(state0.pageNo).toBe(pageNo);
     expect(state0.pageSize).toBe(pageSize);
     expect(Object.keys(state0.params)).toEqual(Object.keys(restParams));
+
+    const state1 = crudReducer(state0, {
+      type: 'PARAMS',
+      payload: qs.parse(qs.stringify({ page: 'qwe' }))
+    });
+
+    expect(state1.pageNo).toBe(pageNo);
   });
 });
