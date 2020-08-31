@@ -54,21 +54,30 @@ export function createCRUDReducer<I, K extends Key<I>>(
     switch (action.type) {
       case 'PAGINATE':
         return (() => {
-          const { data, pageNo, total } = Array.isArray(action.payload)
-            ? { total: action.payload.length, data: action.payload, pageNo: 1 }
+          const {
+            data,
+            pageNo,
+            total,
+            pageSize = state.pageSize
+          } = Array.isArray(action.payload)
+            ? {
+                total: action.payload.length,
+                data: action.payload,
+                pageNo: 1
+              }
             : action.payload;
 
           if (prefill === false) {
             return reducer(state, { type: 'LIST', payload: data });
           }
 
-          const start = (pageNo - 1) * state.pageSize;
+          const start = (pageNo - 1) * pageSize;
 
           const insert = <T1, T2>(arr: T1[], ids: T2[]) => {
             return [
               ...arr.slice(0, start),
               ...ids,
-              ...arr.slice(start + state.pageSize)
+              ...arr.slice(start + pageSize)
             ];
           };
 
@@ -81,6 +90,7 @@ export function createCRUDReducer<I, K extends Key<I>>(
             ...state,
             total,
             pageNo,
+            pageSize,
             byIds: {
               ...state.byIds,
               ...byIds

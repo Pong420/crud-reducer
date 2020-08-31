@@ -51,6 +51,7 @@ export type PaginatePayload<I> =
       data: I[];
       total: number;
       pageNo: number;
+      pageSize?: number;
     };
 
 export interface Paginate<I> {

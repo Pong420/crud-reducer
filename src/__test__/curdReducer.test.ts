@@ -177,6 +177,24 @@ describe('crud reducer', () => {
       expect(state1.total).toBe(total);
     });
 
+    test('pageSize', () => {
+      const pageSize = 20;
+      const mocks = createMocks(pageSize);
+      const total = mocks.length * 5;
+      const pageNo = 1;
+      const state0 = crudReducer(initialState, {
+        type: 'PAGINATE',
+        payload: {
+          total,
+          pageNo,
+          pageSize,
+          data: mocks
+        }
+      });
+
+      expect(state0.pageSize).toBe(pageSize);
+    });
+
     test.each([true, false])('prefill is %s', prefill => {
       [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
         prefill
