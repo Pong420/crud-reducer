@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { ActionCreators } from './crudActions';
+import { ActionCreators } from './crudAction';
 import { Dispatched, bindDispatch } from './bindDispatch';
 
 export type ActionsMap<T1 extends { type: string }> = {

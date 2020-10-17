@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { Key, CRUDActions } from './crudActions';
+import {
+  Key,
+  CRUDActions,
+  CRUDActionTypes,
+  PaginatePayload,
+  baseActionTypes,
+  isAction
+} from './crudAction';
 
 export interface CRUDState<I, Prefill extends boolean = true> {
   ids: string[];
@@ -12,17 +19,25 @@ export interface CRUDState<I, Prefill extends boolean = true> {
   params: any;
 }
 
-export type CRUDReducer<I, K extends Key<I>, Prefill extends boolean = true> = (
+export type CRUDReducer<
+  I,
+  K extends Key<I>,
+  Prefill extends boolean = true,
+  M extends CRUDActionTypes = CRUDActionTypes
+> = (
   state: CRUDState<I, Prefill>,
-  action: CRUDActions<I, K>
+  action: CRUDActions<I, K, M>
 ) => CRUDState<I, Prefill>;
 
-export interface CreateCRUDReducerOptions {
+export interface CreateCRUDReducerOptions<
+  M extends CRUDActionTypes = CRUDActionTypes
+> {
   prefill?: boolean;
+  actionTypes?: M;
   keyGenerator?: (index: number) => string;
 }
 
-const _keyGenerator = (() => {
+export const defaultKeyGenerator = (() => {
   let count = 0;
   return function () {
     count++;
@@ -30,20 +45,42 @@ const _keyGenerator = (() => {
   };
 })();
 
-export function createCRUDReducer<I, K extends Key<I>>(
+export function parsePaginatePayload<I>(payload: PaginatePayload<I>) {
+  return Array.isArray(payload)
+    ? {
+        total: payload.length,
+        data: payload,
+        pageNo: 1
+      }
+    : payload;
+}
+
+export function createCRUDReducer<
+  I,
+  K extends Key<I>,
+  M extends CRUDActionTypes = CRUDActionTypes
+>(
   key: K,
-  options: CreateCRUDReducerOptions & { prefill: false }
+  options: CreateCRUDReducerOptions<M> & { prefill: false }
 ): [CRUDState<I, false>, CRUDReducer<I, K, false>];
 
-export function createCRUDReducer<I, K extends Key<I>>(
+export function createCRUDReducer<
+  I,
+  K extends Key<I>,
+  M extends CRUDActionTypes = CRUDActionTypes
+>(
   key: K,
-  options?: CreateCRUDReducerOptions
+  options?: CreateCRUDReducerOptions<M>
 ): [CRUDState<I, true>, CRUDReducer<I, K, true>];
 
-export function createCRUDReducer<I, K extends Key<I>>(
+export function createCRUDReducer<
+  I,
+  K extends Key<I>,
+  M extends CRUDActionTypes = CRUDActionTypes
+>(
   key: K,
-  options?: CreateCRUDReducerOptions
-): [CRUDState<I, boolean>, CRUDReducer<I, K, boolean>] {
+  options?: CreateCRUDReducerOptions<M>
+): [CRUDState<I, boolean>, CRUDReducer<I, K, boolean, M>] {
   const defaultState: CRUDState<I, boolean> = {
     byIds: {},
     ids: [],
@@ -54,142 +91,163 @@ export function createCRUDReducer<I, K extends Key<I>>(
     params: {}
   };
 
-  const { prefill = true, keyGenerator = _keyGenerator } = options || {};
+  const {
+    prefill = true,
+    keyGenerator = defaultKeyGenerator,
+    actionTypes = baseActionTypes as M
+  } = options || {};
 
-  const reducer: CRUDReducer<I, K, boolean> = (
+  const reducer: CRUDReducer<I, K, boolean, M> = (
     state = defaultState,
     action
   ) => {
-    switch (action.type) {
-      case 'PAGINATE':
-        return (() => {
-          const {
-            data,
-            pageNo,
-            total,
-            pageSize = state.pageSize
-          } = Array.isArray(action.payload)
-            ? {
-                total: action.payload.length,
-                data: action.payload,
-                pageNo: 1
-              }
-            : action.payload;
+    if (isAction(actionTypes, action, 'PAGINATE')) {
+      return (() => {
+        const {
+          data,
+          pageNo,
+          total,
+          pageSize = state.pageSize
+        } = parsePaginatePayload(action.payload);
 
-          if (prefill === false) {
-            return reducer(state, { type: 'LIST', payload: data });
-          }
+        if (prefill === false) {
+          return reducer(state, { type: 'LIST', payload: data });
+        }
 
-          const start = (pageNo - 1) * pageSize;
+        const start = (pageNo - 1) * pageSize;
 
-          const insert = <T1, T2>(arr: T1[], ids: T2[]) => {
-            return [
-              ...arr.slice(0, start),
-              ...ids,
-              ...arr.slice(start + pageSize)
-            ];
-          };
+        const insert = <T1, T2>(arr: T1[], ids: T2[]) => {
+          return [
+            ...arr.slice(0, start),
+            ...ids,
+            ...arr.slice(start + pageSize)
+          ];
+        };
 
-          const { list, ids, byIds } = reducer(defaultState, {
-            type: 'LIST',
-            payload: data
-          });
+        const { list, ids, byIds } = reducer(defaultState, {
+          type: 'LIST',
+          payload: data
+        });
 
-          const length = total - state.ids.length;
+        const length = total - state.ids.length;
 
-          return {
-            ...state,
-            total,
-            pageNo,
-            pageSize,
-            byIds: {
-              ...state.byIds,
-              ...byIds
-            },
-            ids: insert(
-              [
-                ...state.ids,
-                ...Array.from({ length }, (_, index) => keyGenerator(index))
-              ],
-              ids
-            ).slice(0, total),
-            list: insert(
-              [...state.list, ...Array.from({ length }, () => null)],
-              list
-            ).slice(0, total)
-          };
-        })();
-
-      case 'LIST':
-        return action.payload.reduce(
-          (state, payload) => reducer(state, { type: 'CREATE', payload }),
-          defaultState
-        );
-
-      case 'CREATE':
-        return (() => {
-          const id: string = action.payload[key] as any;
-          return {
-            ...state,
-            byIds: { ...state.byIds, [id]: action.payload },
-            list: [...state.list, action.payload],
-            ids: [...state.ids, id]
-          };
-        })();
-
-      case 'UPDATE':
-        return (() => {
-          const id = action.payload[key] as string;
-          const updated = { ...state.byIds[id], ...action.payload };
-          const index = state.ids.indexOf(id);
-          return index === -1
-            ? state
-            : {
-                ...state,
-                byIds: { ...state.byIds, [id]: updated },
-                list: [
-                  ...state.list.slice(0, index),
-                  updated,
-                  ...state.list.slice(index + 1)
-                ]
-              };
-        })();
-
-      case 'DELETE':
-        return (() => {
-          const id = action.payload[key];
-          const index = state.ids.indexOf(id);
-          const { [id]: _deleted, ...byIds } = state.byIds;
-          return {
-            ...state,
-            byIds,
-            ids: removeFromArray(state.ids, index),
-            list: removeFromArray(state.list, index)
-          };
-        })();
-
-      case 'PARAMS':
-        return (() => {
-          const { pageNo, pageSize, ...params } = action.payload;
-          const toNum = (value: unknown, num: number) =>
-            typeof value === 'undefined' || isNaN(Number(value))
-              ? num
-              : Number(value);
-
-          return {
-            ...state,
-            pageNo: toNum(pageNo, state.pageNo),
-            pageSize: toNum(pageSize, state.pageSize),
-            params
-          };
-        })();
-
-      case 'RESET':
-        return defaultState;
-
-      default:
-        return state;
+        return {
+          ...state,
+          total,
+          pageNo,
+          pageSize,
+          byIds: {
+            ...state.byIds,
+            ...byIds
+          },
+          ids: insert(
+            [
+              ...state.ids,
+              ...Array.from({ length }, (_, index) => keyGenerator(index))
+            ],
+            ids
+          ),
+          list: insert(
+            [...state.list, ...Array.from({ length }, () => null)],
+            list
+          )
+        };
+      })();
     }
+
+    if (isAction(actionTypes, action, 'LIST')) {
+      return action.payload.reduce(
+        (state, payload) => reducer(state, { type: 'CREATE', payload }),
+        defaultState
+      );
+    }
+
+    if (isAction(baseActionTypes, action, 'CREATE')) {
+      const id: string = action.payload[key] as any;
+      return {
+        ...state,
+        byIds: { ...state.byIds, [id]: action.payload },
+        list: [...state.list, action.payload],
+        ids: [...state.ids, id]
+      };
+    }
+
+    if (isAction(baseActionTypes, action, 'UPDATE')) {
+      const id = action.payload[key] as string;
+      const updated = { ...state.byIds[id], ...action.payload };
+      const index = state.ids.indexOf(id);
+      return index === -1
+        ? state
+        : {
+            ...state,
+            byIds: { ...state.byIds, [id]: updated },
+            list: [
+              ...state.list.slice(0, index),
+              updated,
+              ...state.list.slice(index + 1)
+            ]
+          };
+    }
+
+    if (isAction(baseActionTypes, action, 'CREATE')) {
+      const id: string = action.payload[key] as any;
+      return {
+        ...state,
+        byIds: { ...state.byIds, [id]: action.payload },
+        list: [...state.list, action.payload],
+        ids: [...state.ids, id]
+      };
+    }
+
+    if (isAction(baseActionTypes, action, 'UPDATE')) {
+      const id = action.payload[key] as string;
+      const updated = { ...state.byIds[id], ...action.payload };
+      const index = state.ids.indexOf(id);
+      return index === -1
+        ? state
+        : {
+            ...state,
+            byIds: { ...state.byIds, [id]: updated },
+            list: [
+              ...state.list.slice(0, index),
+              updated,
+              ...state.list.slice(index + 1)
+            ]
+          };
+    }
+
+    if (isAction(baseActionTypes, action, 'DELETE')) {
+      const id = action.payload[key];
+      const index = state.ids.indexOf(id);
+      const { [id]: _deleted, ...byIds } = state.byIds;
+      return {
+        ...state,
+        byIds,
+        ids: removeFromArray(state.ids, index),
+        list: removeFromArray(state.list, index)
+      };
+    }
+
+    if (isAction(baseActionTypes, action, 'PARAMS')) {
+      const { pageNo, pageSize, ...params } = action.payload;
+      const toNum = (value: unknown, num: number) =>
+        typeof value === 'undefined' || isNaN(Number(value))
+          ? num
+          : Number(value);
+
+      return {
+        ...state,
+        pageNo: toNum(pageNo, state.pageNo),
+        pageSize: toNum(pageSize, state.pageSize),
+        params
+      };
+    }
+
+    if (isAction(baseActionTypes, action, 'RESET')) {
+      return defaultState;
+    }
+
+    return state;
   };
 
   return [defaultState, reducer];

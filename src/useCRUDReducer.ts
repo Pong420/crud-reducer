@@ -1,16 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { useReducer, useRef } from 'react';
+import { useReducer, useState } from 'react';
 import {
   CRUDState,
   createCRUDReducer,
   CreateCRUDReducerOptions
 } from './crudReducer';
-import {
-  Key,
-  createCRUDActionsCreators,
-  CRUDActionCreators
-} from './crudActions';
+import { Key, getCRUDActionsCreator, CRUDActionCreators } from './crudAction';
 import { bindDispatch, Dispatched } from './bindDispatch';
 
 export type UseCRUDReducer<
@@ -36,9 +32,9 @@ export function createUseCRUDReducer<I, K extends Key<I>>(
   const [intialState, reducer] = createCRUDReducer<I, K>(key, options);
   return function useCRUDReducer() {
     const [state, dispatch] = useReducer(reducer, intialState);
-    const { current: actions } = useRef({
-      dispatch,
-      ...bindDispatch(createCRUDActionsCreators<I, K>(), dispatch)
+    const [actions] = useState(() => {
+      const [actions] = getCRUDActionsCreator<I, K>()();
+      return { dispatch, ...bindDispatch(actions, dispatch) };
     });
     return [state, actions];
   };
