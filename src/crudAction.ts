@@ -41,40 +41,43 @@ export type BaseCRUDActionType =
   | 'PARAMS'
   | 'RESET';
 
-export type CRUDActionTypes<Type = any> = Record<BaseCRUDActionType, Type>;
+export type CRUDActionTypes<Type extends string = any> = Record<
+  BaseCRUDActionType,
+  Type
+>;
 
-export type List<Type, I> = {
-  readonly type: Type;
+export type List<Type extends string, I> = {
+  type: Type;
   payload: I[];
 };
 
-export type Create<Type, I> = {
-  readonly type: Type;
+export type Create<Type extends string, I> = {
+  type: Type;
   payload: I;
 };
 
-export interface Update<Type, I, K extends Key<I>> {
-  readonly type: Type;
+export interface Update<Type extends string, I, K extends Key<I>> {
+  type: Type;
   payload: Partial<I> & { [T in K]: string };
 }
 
-export interface Delete<Type, I, K extends Key<I>> {
-  readonly type: Type;
+export interface Delete<Type extends string, I, K extends Key<I>> {
+  type: Type;
   payload: { [T in K]: string };
 }
 
-export interface Paginate<Type, I> {
-  readonly type: Type;
+export interface Paginate<Type extends string, I> {
+  type: Type;
   payload: PaginatePayload<I>;
 }
 
-export interface Params<Type> {
-  readonly type: Type;
+export interface Params<Type extends string> {
+  type: Type;
   payload: Record<string, any>;
 }
 
-export interface Reset<Type> {
-  readonly type: Type;
+export interface Reset<Type extends string> {
+  type: Type;
 }
 
 export type CRUDActionCreators<
@@ -118,28 +121,32 @@ export function isAction<
 }
 
 export const baseActionTypes = {
-  LIST: 'LIST' as const,
-  CREATE: 'CREATE' as const,
-  UPDATE: 'UPDATE' as const,
-  DELETE: 'DELETE' as const,
-  PAGINATE: 'PAGINATE' as const,
-  PARAMS: 'PARAMS' as const,
-  RESET: 'RESET' as const
-};
+  LIST: 'LIST',
+  CREATE: 'CREATE',
+  UPDATE: 'UPDATE',
+  DELETE: 'DELETE',
+  PAGINATE: 'PAGINATE',
+  PARAMS: 'PARAMS',
+  RESET: 'RESET'
+} as const;
 
 export function getCRUDActionsCreator<I, K extends Key<I>>() {
-  return function <M extends CRUDActionTypes = CRUDActionTypes>(
-    actionTypes = baseActionTypes as Readonly<M>
-  ) {
-    const creators: CRUDActionCreators<I, K, M> = {
-      list: payload => ({ type: actionTypes['LIST'], payload }),
-      create: payload => ({ type: actionTypes['CREATE'], payload }),
-      update: payload => ({ type: actionTypes['UPDATE'], payload }),
-      delete: payload => ({ type: actionTypes['DELETE'], payload }),
-      paginate: payload => ({ type: actionTypes['PAGINATE'], payload }),
-      params: payload => ({ type: actionTypes['PARAMS'], payload }),
-      reset: () => ({ type: actionTypes['RESET'] })
-    };
-    return [creators, actionTypes] as const;
-  };
+  // prettier-ignore
+  function create(): [CRUDActionCreators<I, K, typeof baseActionTypes>, typeof baseActionTypes]
+  // prettier-ignore
+  function create<M extends CRUDActionTypes = CRUDActionTypes>(actionTypes: Partial<M>): [CRUDActionCreators<I, K, M>, M]
+  // prettier-ignore
+  function create<M extends CRUDActionTypes = CRUDActionTypes>(actionTypes = baseActionTypes as Partial<M>) {
+   const creators: CRUDActionCreators<I, K, M> = {
+     list: payload => ({ type: actionTypes['LIST'], payload }),
+     create: payload => ({ type: actionTypes['CREATE'], payload }),
+     update: payload => ({ type: actionTypes['UPDATE'], payload }),
+     delete: payload => ({ type: actionTypes['DELETE'], payload }),
+     paginate: payload => ({ type: actionTypes['PAGINATE'], payload }),
+     params: payload => ({ type: actionTypes['PARAMS'], payload }),
+     reset: () => ({ type: actionTypes['RESET'] })
+   };
+   return [creators, actionTypes] as const;
+ }
+  return create;
 }

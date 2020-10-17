@@ -1,5 +1,5 @@
 import { CRUDReducer, CRUDState, createCRUDReducer } from '../crudReducer';
-import { paginateSelector } from '../selector';
+import { paginateSelector } from '../crudSelector';
 
 interface Schema {
   id: string;
