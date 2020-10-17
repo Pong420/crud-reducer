@@ -7,7 +7,9 @@ interface Post {
   content: string;
 }
 
-const usePostReducer = createUseCRUDReducer<Post, 'id'>('id');
+const usePostReducer = createUseCRUDReducer<Post, 'id'>('id', {
+  prefill: false
+});
 
 const getPosts = () =>
   Promise.resolve<Post[]>([{ id: '1', content: 'some content' }]);

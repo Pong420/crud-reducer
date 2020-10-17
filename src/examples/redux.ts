@@ -2,7 +2,7 @@ import React, { HTMLAttributes } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   createCRUDReducer,
-  createCRUDActionsCreators,
+  getCRUDActionsCreator,
   CRUDActions,
   useActions
 } from '../';
@@ -14,15 +14,24 @@ interface Todo {
 
 export type TodoActions = CRUDActions<Todo, 'id'>;
 
-export const todoActions = createCRUDActionsCreators<Todo, 'id'>();
+export const [
+  //
+  todoActions,
+  todoActionsTypes
+] = getCRUDActionsCreator<Todo, 'id'>()({
+  // define the actions you need
+  LIST: 'LIST_TODO',
+  CREATE: 'CREATE_TODO',
+  UPDATE: 'UPDATE_TODO',
+  DELETE: 'DELETE_TODO'
+});
 
 export const useTodoActions = () => useActions(todoActions);
 
-export const [, todoReducer] = createCRUDReducer<Todo, 'id'>('id');
+export const [initialState, todoReducer] = createCRUDReducer<Todo, 'id'>('id');
 
 export function Component() {
   const actions = useTodoActions();
-
   const dispatch = useDispatch();
 
   return React.createElement<HTMLAttributes<HTMLButtonElement>>(

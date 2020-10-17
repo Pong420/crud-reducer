@@ -1,8 +1,4 @@
-import {
-  createCRUDReducer,
-  createCRUDActionsCreators,
-  UnionActions
-} from '../';
+import { createCRUDReducer, getCRUDActionsCreator, UnionActions } from '../';
 
 interface Todo {
   id: string;
@@ -10,9 +6,13 @@ interface Todo {
 }
 
 const [initialState, reducer] = createCRUDReducer<Todo, 'id'>('id');
+const [
+  defaultActions
+  // defaultActionTypes
+] = getCRUDActionsCreator<Todo, 'id'>()();
 
 const actions = {
-  ...createCRUDActionsCreators<Todo, 'id'>(),
+  ...defaultActions,
   extraAction: (payload: boolean) => ({
     type: 'ExtraAction' as const, // or enum
     payload
