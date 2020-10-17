@@ -1,6 +1,6 @@
 {
   "name": "crud-reducer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -21,24 +21,24 @@
     ]
   },
   "devDependencies": {
-    "@testing-library/react-hooks": "^3.4.1",
-    "@types/jest": "^26.0.8",
-    "@types/qs": "^6.9.4",
-    "@types/react": "^16.9.44",
+    "@testing-library/react-hooks": "^3.4.2",
+    "@types/jest": "^26.0.14",
+    "@types/qs": "^6.9.5",
+    "@types/react": "^16.9.53",
     "@types/react-redux": "^7.1.9",
-    "@typescript-eslint/eslint-plugin": "3.8.0",
-    "@typescript-eslint/parser": "3.8.0",
-    "eslint": "7.6.0",
-    "eslint-config-prettier": "6.11.0",
-    "eslint-plugin-react-hooks": "^4.0.8",
-    "husky": "^4.2.5",
-    "jest": "^26.2.2",
-    "lint-staged": "^10.2.11",
-    "prettier": "^2.0.5",
+    "@typescript-eslint/eslint-plugin": "4.4.1",
+    "@typescript-eslint/parser": "4.4.1",
+    "eslint": "7.11.0",
+    "eslint-config-prettier": "6.13.0",
+    "eslint-plugin-react-hooks": "^4.1.2",
+    "husky": "^4.3.0",
+    "jest": "^26.5.3",
+    "lint-staged": "^10.4.2",
+    "prettier": "^2.1.2",
     "qs": "^6.9.4",
-    "react": "^16.13.1",
-    "react-test-renderer": "^16.13.1",
-    "ts-jest": "^26.1.4",
-    "typescript": "3.8.3"
+    "react": "^16.14.0",
+    "react-test-renderer": "^16.14.0",
+    "ts-jest": "^26.4.1",
+    "typescript": "4.0.3"
   }
 }
