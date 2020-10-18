@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { UnionActions } from './useActions';
-
 // https://medium.com/dailyjs/typescript-create-a-condition-based-subset-types-9d902cea5b8c
 export type FilterFlags<Base, Condition> = {
   [Key in keyof Base]: Base[Key] extends Condition ? Key : never;
@@ -22,6 +20,10 @@ export interface AnyAction {
 export interface ActionCreators {
   [k: string]: (...args: any[]) => AnyAction;
 }
+
+export type GetCreatorsAction<
+  T extends Record<string, (...args: any[]) => any>
+> = ReturnType<T[keyof T]>;
 
 export type CRUDActionType =
   | 'LIST'
@@ -106,7 +108,7 @@ export type CRUDActions<
   I,
   K extends Key<I>,
   M extends CRUDActionTypes = CRUDActionTypes
-> = UnionActions<CRUDActionCreators<I, K, M>>;
+> = GetCreatorsAction<CRUDActionCreators<I, K, M>>;
 
 export type ExtractAction<
   CustomActionTypes extends AnyAction,

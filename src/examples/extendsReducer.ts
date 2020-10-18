@@ -1,7 +1,7 @@
 import {
   createCRUDReducer,
   getCRUDActionsCreator,
-  UnionActions,
+  GetCreatorsAction,
   ExtractAction
 } from '../';
 
@@ -24,7 +24,7 @@ const actions = {
   })
 };
 
-export type TodoActions = UnionActions<typeof actions>;
+export type TodoActions = GetCreatorsAction<typeof actions>;
 export type ExtraAction = ExtractAction<TodoActions, 'ExtraAction'>;
 
 export function todoReducer(state = initialState, action: TodoActions) {

@@ -19,10 +19,10 @@ rm -rf ./crud-reducer/.git
 
 ### Utils / Types
 
-- `UnionActions` and `ExtractAction`
+- `GetCreatorsAction` and `ExtractAction`
 
 ```typescript
-import { UnionActions, ExtractAction } from '../';
+import { GetCreatorsAction, ExtractAction } from '../';
 
 function actions4() {
   return { type: 'Action4' as const };
@@ -37,7 +37,7 @@ const actions = {
   actions4
 };
 
-type Actions = UnionActions<typeof actions>;
+type Actions = GetCreatorsAction<typeof actions>;
 
 type Aaction3 = ExtractAction<Actions, 'Action3'>;
 ```

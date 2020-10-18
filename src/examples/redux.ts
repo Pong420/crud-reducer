@@ -4,7 +4,7 @@ import {
   getCRUDActionsCreator,
   createCRUDReducer,
   useActions,
-  UnionActions
+  GetCreatorsAction
 } from '../';
 
 interface Todo {
@@ -24,7 +24,7 @@ export const [
   DELETE: 'DELETE_TODO'
 } as const);
 
-export type TodoActions = UnionActions<typeof todoActions>;
+export type TodoActions = GetCreatorsAction<typeof todoActions>;
 
 export const useTodoActions = () => useActions(todoActions);
 
