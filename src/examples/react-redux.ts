@@ -5,7 +5,7 @@ import {
   createCRUDReducer,
   useActions,
   GetCreatorsAction
-} from '../';
+} from '..';
 
 interface Todo {
   id: string;

@@ -12,7 +12,7 @@ rm -rf ./crud-reducer/.git
 ### Examples
 
 - [React hooks](./src/examples/hooks.tsx)
-- [Redux](./src/examples/redux.ts)
+- [React Redux](./src/examples/redux.ts)
 - [Extend CRUD Reducer](./src/examples/extendsReducer.ts)
 
 - Pagination - WIP
