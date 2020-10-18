@@ -22,6 +22,7 @@ export const [
   CREATE: 'CREATE_TODO',
   UPDATE: 'UPDATE_TODO',
   DELETE: 'DELETE_TODO'
+  // remember to add const
 } as const);
 
 export type TodoActions = GetCreatorsAction<typeof todoActions>;
