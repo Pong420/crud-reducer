@@ -1,4 +1,5 @@
-import { CRUDReducer, CRUDState, createCRUDReducer } from '../crudReducer';
+import { DefaultCRUDActionTypes, getCRUDActionsCreator } from '../crudAction';
+import { createCRUDReducer } from '../crudReducer';
 import qs from 'qs';
 
 interface Schema {
@@ -16,12 +17,24 @@ function createMocks(length: number): Schema[] {
   return Array.from({ length }, () => createMock());
 }
 
-describe('crud reducer', () => {
-  let initialState: CRUDState<Schema>;
-  let crudReducer: CRUDReducer<Schema, 'id'>;
+const [, customActionTypes] = getCRUDActionsCreator<Schema, 'id'>()({
+  LIST: 'LIST_SCHEMA',
+  CREATE: 'CREATE_SCHEMA',
+  UPDATE: 'UPDATE_SCHEMA',
+  DELETE: 'DELETE_SCHEMA',
+  PAGINATE: 'PAGINATE_SCHEMA',
+  PARAMS: 'PARAMS_SCHEMA',
+  RESET: 'RESET_SCHEMA'
+} as const);
 
-  beforeEach(() => {
-    [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id');
+const testOptions = [
+  ['default', DefaultCRUDActionTypes],
+  ['custom ', customActionTypes]
+] as const;
+
+describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
+  let [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
+    actionTypes
   });
 
   test('default', () => {
@@ -33,7 +46,7 @@ describe('crud reducer', () => {
   test('list', () => {
     function list(initial: typeof state, payload: Schema[]) {
       const state = crudReducer(initial, {
-        type: 'LIST',
+        type: actionTypes['LIST'],
         payload: payload
       });
       expect(state.list).toEqual(payload);
@@ -53,7 +66,7 @@ describe('crud reducer', () => {
   test('create', () => {
     function create(initial: typeof state, payload: Schema) {
       const state = crudReducer(initial, {
-        type: 'CREATE',
+        type: actionTypes['CREATE'],
         payload: payload
       });
       expect(state.list).toContain(payload);
@@ -72,20 +85,20 @@ describe('crud reducer', () => {
   test('update', () => {
     const mock = createMock();
     const state0 = crudReducer(initialState, {
-      type: 'CREATE',
+      type: actionTypes['CREATE'],
       payload: mock
     });
 
     const newValue = '123';
     const payload = { id: mock.id, value: newValue };
     const state1 = crudReducer(state0, {
-      type: 'UPDATE',
+      type: actionTypes['UPDATE'],
       payload
     });
 
     // should not be ignored
     const state2 = crudReducer(state1, {
-      type: 'UPDATE',
+      type: actionTypes['UPDATE'],
       payload: { id: 'qwe', value: newValue }
     });
 
@@ -98,12 +111,12 @@ describe('crud reducer', () => {
   test('delete', () => {
     const mock = createMock();
     const state0 = crudReducer(initialState, {
-      type: 'CREATE',
+      type: actionTypes['CREATE'],
       payload: mock
     });
 
     const state1 = crudReducer(state0, {
-      type: 'DELETE',
+      type: actionTypes['DELETE'],
       payload: { id: mock.id }
     });
 
@@ -113,7 +126,7 @@ describe('crud reducer', () => {
     expect(state1.byIds[mock.id]).toBeUndefined();
 
     const state2 = crudReducer(state1, {
-      type: 'DELETE',
+      type: actionTypes['DELETE'],
       payload: { id: 'qwe' }
     });
 
@@ -123,12 +136,16 @@ describe('crud reducer', () => {
   test('reset', () => {
     const mock = createMock();
     const state0 = crudReducer(initialState, {
-      type: 'CREATE',
+      type: actionTypes['CREATE'],
       payload: mock
     });
 
+    expect(state0.ids).toHaveLength(1);
+    expect(state0.byIds).toEqual({ [mock.id]: mock });
+    expect(state0.list).toEqual([mock]);
+
     const state1 = crudReducer(state0, {
-      type: 'RESET'
+      type: actionTypes['RESET']
     });
 
     expect(state1).toEqual(initialState);
@@ -138,7 +155,7 @@ describe('crud reducer', () => {
     test('normal', () => {
       const mocks1 = createMocks(10);
       const state0 = crudReducer(initialState, {
-        type: 'PAGINATE',
+        type: actionTypes['PAGINATE'],
         payload: mocks1
       });
 
@@ -155,7 +172,7 @@ describe('crud reducer', () => {
       const pageNo = 2;
       const pageSize = 10;
       const state1 = crudReducer(state0, {
-        type: 'PAGINATE',
+        type: actionTypes['PAGINATE'],
         payload: {
           total,
           pageNo,
@@ -183,7 +200,7 @@ describe('crud reducer', () => {
       const total = mocks.length * 5;
       const pageNo = 1;
       const state0 = crudReducer(initialState, {
-        type: 'PAGINATE',
+        type: actionTypes['PAGINATE'],
         payload: {
           total,
           pageNo,
@@ -197,6 +214,7 @@ describe('crud reducer', () => {
 
     test('keyGenerator', () => {
       [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
+        actionTypes,
         keyGenerator: index => `idx-${index}`
       });
 
@@ -204,7 +222,7 @@ describe('crud reducer', () => {
       const total = mocks.length * 5;
       const pageNo = 1;
       const state0 = crudReducer(initialState, {
-        type: 'PAGINATE',
+        type: actionTypes['PAGINATE'],
         payload: {
           total,
           pageNo,
@@ -219,6 +237,7 @@ describe('crud reducer', () => {
 
     test.each([true, false])('prefill is %s', prefill => {
       [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
+        actionTypes,
         prefill
       });
 
@@ -227,14 +246,14 @@ describe('crud reducer', () => {
       const pageSize = 10;
       const total = pageNo * pageSize * 2;
       const state = crudReducer(initialState, {
-        type: 'PAGINATE',
+        type: actionTypes['PAGINATE'],
         payload: { pageNo, data: mocks1, total: pageNo * pageSize * 2 }
       });
 
       if (prefill) {
         expect(state.total).toBe(total);
-        expect(state.ids.length).toBe(total);
-        expect(state.list.length).toBe(total);
+        expect(state.ids).toHaveLength(total);
+        expect(state.list).toHaveLength(total);
 
         expect(
           state.ids
@@ -256,26 +275,26 @@ describe('crud reducer', () => {
       } else {
         expect(state.pageNo).toBe(1);
         expect(state.total).toBe(0);
-        expect(state.ids.length).toBe(mocks1.length);
-        expect(state.list.length).toBe(mocks1.length);
+        expect(state.ids).toHaveLength(mocks1.length);
+        expect(state.list).toHaveLength(mocks1.length);
       }
     });
 
     test('prefill typings', () => {
       const [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>(
         'id',
-        { prefill: false }
+        { actionTypes, prefill: false }
       );
 
       const mock = createMock();
       let state = crudReducer(initialState, { type: 'CREATE', payload: mock });
       state.list.map(item => {
         state = crudReducer(initialState, {
-          type: 'UPDATE',
+          type: actionTypes['UPDATE'],
           payload: { ...item, value: '123123' }
         });
         state = crudReducer(initialState, {
-          type: 'DELETE',
+          type: actionTypes['DELETE'],
           payload: { ...item, id: mock.id }
         });
       });
@@ -286,27 +305,27 @@ describe('crud reducer', () => {
 
   test('params', () => {
     const params = {
-      pageNo: 2,
-      pageSize: 20,
-      status: 1,
+      pageNo: '2',
+      pageSize: '20',
+      status: '1',
       search: 'search'
     };
     const state0 = crudReducer(initialState, {
-      type: 'PARAMS',
+      type: actionTypes['PARAMS'],
       payload: qs.parse(qs.stringify(params))
     });
 
     const { pageNo, pageSize, ...restParams } = params;
 
-    expect(state0.pageNo).toBe(pageNo);
-    expect(state0.pageSize).toBe(pageSize);
-    expect(Object.keys(state0.params)).toEqual(Object.keys(restParams));
+    expect(state0.pageNo).toBe(Number(pageNo));
+    expect(state0.pageSize).toBe(Number(pageSize));
+    expect(state0.params).toEqual(restParams);
 
     const state1 = crudReducer(state0, {
-      type: 'PARAMS',
+      type: actionTypes['PARAMS'],
       payload: qs.parse(qs.stringify({ page: 'qwe' }))
     });
 
-    expect(state1.pageNo).toBe(pageNo);
+    expect(state1.pageNo).toBe(Number(pageNo));
   });
 });
