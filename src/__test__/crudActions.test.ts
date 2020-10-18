@@ -1,4 +1,4 @@
-import { getCRUDActionsCreator } from '../crudAction';
+import { getCRUDActionsCreator, DefaultCRUDActionTypes } from '../crudAction';
 
 describe('actions', () => {
   test('defined', () => {
@@ -47,7 +47,10 @@ describe('actions', () => {
 
     expect(partial).toBeDefined();
     expect(partial.list([])).toEqual({ type: 'LIST_TODO', payload: [] });
-    expect(partial.create(payload)).toEqual({ type: undefined, payload });
+    expect(partial.create(payload)).toEqual({
+      type: DefaultCRUDActionTypes.CREATE,
+      payload
+    });
 
     // --------------------------------------------------------------------------------------------------
 

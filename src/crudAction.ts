@@ -23,16 +23,7 @@ export interface ActionCreators {
   [k: string]: (...args: any[]) => AnyAction;
 }
 
-export type PaginatePayload<I> =
-  | I[]
-  | {
-      data: I[];
-      total: number;
-      pageNo: number;
-      pageSize?: number;
-    };
-
-export type BaseCRUDActionType =
+export type CRUDActionType =
   | 'LIST'
   | 'CREATE'
   | 'UPDATE'
@@ -41,10 +32,25 @@ export type BaseCRUDActionType =
   | 'PARAMS'
   | 'RESET';
 
-export type CRUDActionTypes<Type extends string = any> = Record<
-  BaseCRUDActionType,
-  Type
->;
+export type CRUDActionTypes<Type extends string = any> = {
+  [K in CRUDActionType]?: Type;
+};
+
+export type CustomActionTypes<
+  M extends Partial<CRUDActionTypes> = CRUDActionTypes
+> = M & Omit<typeof DefaultCRUDActionTypes, keyof M>;
+
+export type UpdatePayload<I, K extends Key<I>> = Partial<I> &
+  { [T in K]: string };
+
+export type PaginatePayload<I> =
+  | I[]
+  | {
+      data: I[];
+      total: number;
+      pageNo: number;
+      pageSize?: number;
+    };
 
 export type List<Type extends string, I> = {
   type: Type;
@@ -58,7 +64,7 @@ export type Create<Type extends string, I> = {
 
 export interface Update<Type extends string, I, K extends Key<I>> {
   type: Type;
-  payload: Partial<I> & { [T in K]: string };
+  payload: UpdatePayload<I, K>;
 }
 
 export interface Delete<Type extends string, I, K extends Key<I>> {
@@ -103,9 +109,9 @@ export type CRUDActions<
 > = UnionActions<CRUDActionCreators<I, K, M>>;
 
 export type ExtractAction<
-  T1 extends AnyAction,
-  T2 extends T1['type']
-> = T1 extends { type: T2 } ? T1 : never;
+  CustomActionTypes extends AnyAction,
+  T2 extends CustomActionTypes['type']
+> = CustomActionTypes extends { type: T2 } ? CustomActionTypes : never;
 
 export function isAction<
   I,
@@ -120,7 +126,7 @@ export function isAction<
   return action.type === map[type];
 }
 
-export const baseActionTypes = {
+export const DefaultCRUDActionTypes = {
   LIST: 'LIST',
   CREATE: 'CREATE',
   UPDATE: 'UPDATE',
@@ -132,21 +138,22 @@ export const baseActionTypes = {
 
 export function getCRUDActionsCreator<I, K extends Key<I>>() {
   // prettier-ignore
-  function create(): [CRUDActionCreators<I, K, typeof baseActionTypes>, typeof baseActionTypes]
+  function create(): [CRUDActionCreators<I, K, typeof DefaultCRUDActionTypes>, typeof DefaultCRUDActionTypes]
   // prettier-ignore
-  function create<M extends CRUDActionTypes = CRUDActionTypes>(actionTypes: Partial<M>): [CRUDActionCreators<I, K, M>, M]
+  function create<M extends CRUDActionTypes = CRUDActionTypes>(actionTypes: M): [CRUDActionCreators<I, K, CustomActionTypes<M>>, CustomActionTypes<M>]
   // prettier-ignore
-  function create<M extends CRUDActionTypes = CRUDActionTypes>(actionTypes = baseActionTypes as Partial<M>) {
-   const creators: CRUDActionCreators<I, K, M> = {
-     list: payload => ({ type: actionTypes['LIST'], payload }),
-     create: payload => ({ type: actionTypes['CREATE'], payload }),
-     update: payload => ({ type: actionTypes['UPDATE'], payload }),
-     delete: payload => ({ type: actionTypes['DELETE'], payload }),
-     paginate: payload => ({ type: actionTypes['PAGINATE'], payload }),
-     params: payload => ({ type: actionTypes['PARAMS'], payload }),
-     reset: () => ({ type: actionTypes['RESET'] })
-   };
-   return [creators, actionTypes] as const;
- }
+  function create<M extends CRUDActionTypes = CRUDActionTypes>(actionTypes = DefaultCRUDActionTypes as M) {
+    actionTypes = { ...DefaultCRUDActionTypes, ...actionTypes };
+    const creators: CRUDActionCreators<I, K, CustomActionTypes<M>> = {
+      list: payload => ({ type: actionTypes['LIST'], payload }),
+      create: payload => ({ type: actionTypes['CREATE'], payload }),
+      update: payload => ({ type: actionTypes['UPDATE'], payload }),
+      delete: payload => ({ type: actionTypes['DELETE'], payload }),
+      paginate: payload => ({ type: actionTypes['PAGINATE'], payload }),
+      params: payload => ({ type: actionTypes['PARAMS'], payload }),
+      reset: () => ({ type: actionTypes['RESET'] })
+    };
+    return [creators, actionTypes] as const;
+  }
   return create;
 }

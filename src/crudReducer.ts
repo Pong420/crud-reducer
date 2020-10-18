@@ -5,7 +5,7 @@ import {
   CRUDActions,
   CRUDActionTypes,
   PaginatePayload,
-  baseActionTypes,
+  DefaultCRUDActionTypes,
   isAction
 } from './crudAction';
 
@@ -94,7 +94,7 @@ export function createCRUDReducer<
   const {
     prefill = true,
     keyGenerator = defaultKeyGenerator,
-    actionTypes = baseActionTypes as M
+    actionTypes = DefaultCRUDActionTypes as M
   } = options || {};
 
   const reducer: CRUDReducer<I, K, boolean, M> = (
@@ -162,7 +162,7 @@ export function createCRUDReducer<
       );
     }
 
-    if (isAction(baseActionTypes, action, 'CREATE')) {
+    if (isAction(DefaultCRUDActionTypes, action, 'CREATE')) {
       const id: string = action.payload[key] as any;
       return {
         ...state,
@@ -172,7 +172,7 @@ export function createCRUDReducer<
       };
     }
 
-    if (isAction(baseActionTypes, action, 'UPDATE')) {
+    if (isAction(DefaultCRUDActionTypes, action, 'UPDATE')) {
       const id = action.payload[key] as string;
       const updated = { ...state.byIds[id], ...action.payload };
       const index = state.ids.indexOf(id);
@@ -189,7 +189,7 @@ export function createCRUDReducer<
           };
     }
 
-    if (isAction(baseActionTypes, action, 'CREATE')) {
+    if (isAction(DefaultCRUDActionTypes, action, 'CREATE')) {
       const id: string = action.payload[key] as any;
       return {
         ...state,
@@ -199,7 +199,7 @@ export function createCRUDReducer<
       };
     }
 
-    if (isAction(baseActionTypes, action, 'UPDATE')) {
+    if (isAction(DefaultCRUDActionTypes, action, 'UPDATE')) {
       const id = action.payload[key] as string;
       const updated = { ...state.byIds[id], ...action.payload };
       const index = state.ids.indexOf(id);
@@ -216,7 +216,7 @@ export function createCRUDReducer<
           };
     }
 
-    if (isAction(baseActionTypes, action, 'DELETE')) {
+    if (isAction(DefaultCRUDActionTypes, action, 'DELETE')) {
       const id = action.payload[key];
       const index = state.ids.indexOf(id);
       const { [id]: _deleted, ...byIds } = state.byIds;
@@ -228,7 +228,7 @@ export function createCRUDReducer<
       };
     }
 
-    if (isAction(baseActionTypes, action, 'PARAMS')) {
+    if (isAction(DefaultCRUDActionTypes, action, 'PARAMS')) {
       const { pageNo, pageSize, ...params } = action.payload;
       const toNum = (value: unknown, num: number) =>
         typeof value === 'undefined' || isNaN(Number(value))
@@ -243,7 +243,7 @@ export function createCRUDReducer<
       };
     }
 
-    if (isAction(baseActionTypes, action, 'RESET')) {
+    if (isAction(DefaultCRUDActionTypes, action, 'RESET')) {
       return defaultState;
     }
 
