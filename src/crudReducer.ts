@@ -6,7 +6,8 @@ import {
   CRUDActionTypes,
   PaginatePayload,
   DefaultCRUDActionTypes,
-  isAction
+  isAction,
+  List
 } from './crudAction';
 
 export interface CRUDState<I, Prefill extends boolean = true> {
@@ -111,7 +112,7 @@ export function createCRUDReducer<
         } = parsePaginatePayload(action.payload);
 
         if (prefill === false) {
-          return reducer(state, { type: 'LIST', payload: data });
+          return reducer(state, { type: actionTypes['LIST'], payload: data });
         }
 
         const start = (pageNo - 1) * pageSize;
@@ -125,7 +126,7 @@ export function createCRUDReducer<
         };
 
         const { list, ids, byIds } = reducer(defaultState, {
-          type: 'LIST',
+          type: actionTypes['LIST'],
           payload: data
         });
 
@@ -156,13 +157,14 @@ export function createCRUDReducer<
     }
 
     if (isAction(actionTypes, action, 'LIST')) {
-      return action.payload.reduce(
-        (state, payload) => reducer(state, { type: 'CREATE', payload }),
+      return (action as List<'', I>).payload.reduce(
+        (state, payload) =>
+          reducer(state, { type: actionTypes['CREATE'], payload }),
         defaultState
       );
     }
 
-    if (isAction(DefaultCRUDActionTypes, action, 'CREATE')) {
+    if (isAction(actionTypes, action, 'CREATE')) {
       const id: string = action.payload[key] as any;
       return {
         ...state,
@@ -172,7 +174,7 @@ export function createCRUDReducer<
       };
     }
 
-    if (isAction(DefaultCRUDActionTypes, action, 'UPDATE')) {
+    if (isAction(actionTypes, action, 'UPDATE')) {
       const id = action.payload[key] as string;
       const updated = { ...state.byIds[id], ...action.payload };
       const index = state.ids.indexOf(id);
@@ -189,34 +191,7 @@ export function createCRUDReducer<
           };
     }
 
-    if (isAction(DefaultCRUDActionTypes, action, 'CREATE')) {
-      const id: string = action.payload[key] as any;
-      return {
-        ...state,
-        byIds: { ...state.byIds, [id]: action.payload },
-        list: [...state.list, action.payload],
-        ids: [...state.ids, id]
-      };
-    }
-
-    if (isAction(DefaultCRUDActionTypes, action, 'UPDATE')) {
-      const id = action.payload[key] as string;
-      const updated = { ...state.byIds[id], ...action.payload };
-      const index = state.ids.indexOf(id);
-      return index === -1
-        ? state
-        : {
-            ...state,
-            byIds: { ...state.byIds, [id]: updated },
-            list: [
-              ...state.list.slice(0, index),
-              updated,
-              ...state.list.slice(index + 1)
-            ]
-          };
-    }
-
-    if (isAction(DefaultCRUDActionTypes, action, 'DELETE')) {
+    if (isAction(actionTypes, action, 'DELETE')) {
       const id = action.payload[key];
       const index = state.ids.indexOf(id);
       const { [id]: _deleted, ...byIds } = state.byIds;
@@ -228,7 +203,7 @@ export function createCRUDReducer<
       };
     }
 
-    if (isAction(DefaultCRUDActionTypes, action, 'PARAMS')) {
+    if (isAction(actionTypes, action, 'PARAMS')) {
       const { pageNo, pageSize, ...params } = action.payload;
       const toNum = (value: unknown, num: number) =>
         typeof value === 'undefined' || isNaN(Number(value))
@@ -243,7 +218,7 @@ export function createCRUDReducer<
       };
     }
 
-    if (isAction(DefaultCRUDActionTypes, action, 'RESET')) {
+    if (isAction(actionTypes, action, 'RESET')) {
       return defaultState;
     }
 

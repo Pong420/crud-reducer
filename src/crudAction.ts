@@ -121,11 +121,11 @@ export function isAction<
   M extends CRUDActionTypes = CRUDActionTypes,
   BaseType extends keyof M = keyof M
 >(
-  map: M,
+  actionTypes: M,
   action: CRUDActions<I, K, M>,
   type: BaseType
 ): action is ExtractAction<CRUDActions<I, K, M>, M[BaseType]> {
-  return action.type === map[type];
+  return action.type === actionTypes[type];
 }
 
 export const DefaultCRUDActionTypes = {
