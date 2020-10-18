@@ -1,10 +1,10 @@
 import React, { HTMLAttributes } from 'react';
 import { useDispatch } from 'react-redux';
 import {
-  createCRUDReducer,
   getCRUDActionsCreator,
-  CRUDActions,
-  useActions
+  createCRUDReducer,
+  useActions,
+  UnionActions
 } from '../';
 
 interface Todo {
@@ -12,23 +12,26 @@ interface Todo {
   content: string;
 }
 
-export type TodoActions = CRUDActions<Todo, 'id'>;
-
 export const [
   //
   todoActions,
   todoActionsTypes
 ] = getCRUDActionsCreator<Todo, 'id'>()({
-  // define the actions you need
+  // customize the actions you need
   LIST: 'LIST_TODO',
   CREATE: 'CREATE_TODO',
   UPDATE: 'UPDATE_TODO',
   DELETE: 'DELETE_TODO'
-});
+} as const);
+
+export type TodoActions = UnionActions<typeof todoActions>;
 
 export const useTodoActions = () => useActions(todoActions);
 
-export const [initialState, todoReducer] = createCRUDReducer<Todo, 'id'>('id');
+export const [initialState, todoReducer] = createCRUDReducer<Todo, 'id'>('id', {
+  // required for custom action types
+  actionTypes: todoActionsTypes
+});
 
 export function Component() {
   const actions = useTodoActions();

@@ -1,4 +1,9 @@
-import { createCRUDReducer, getCRUDActionsCreator, UnionActions } from '../';
+import {
+  createCRUDReducer,
+  getCRUDActionsCreator,
+  UnionActions,
+  ExtractAction
+} from '../';
 
 interface Todo {
   id: string;
@@ -19,9 +24,10 @@ const actions = {
   })
 };
 
-type Actions = UnionActions<typeof actions>;
+export type TodoActions = UnionActions<typeof actions>;
+export type ExtraAction = ExtractAction<TodoActions, 'ExtraAction'>;
 
-export function todoReducer(state = initialState, action: Actions) {
+export function todoReducer(state = initialState, action: TodoActions) {
   switch (action.type) {
     case 'ExtraAction':
       return state;
