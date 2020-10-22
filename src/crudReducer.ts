@@ -194,7 +194,9 @@ export function createCRUDReducer<
     if (isAction(actionTypes, action, 'DELETE')) {
       const id = action.payload[key];
       const index = state.ids.indexOf(id);
-      const { [id]: _deleted, ...byIds } = state.byIds;
+      const byIds = { ...state.byIds };
+      delete byIds[id];
+
       return {
         ...state,
         byIds,
