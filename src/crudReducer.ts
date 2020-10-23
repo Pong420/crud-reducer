@@ -56,32 +56,21 @@ export function parsePaginatePayload<I>(payload: PaginatePayload<I>) {
     : payload;
 }
 
-export function createCRUDReducer<
-  I,
-  K extends Key<I>,
-  M extends CRUDActionTypes = CRUDActionTypes
->(
-  key: K,
-  options: CreateCRUDReducerOptions<M> & { prefill: false }
-): [CRUDState<I, false>, CRUDReducer<I, K, false>];
+// prettier-ignore
+export interface CreateCRUDReducer  {
+  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options: CreateCRUDReducerOptions<M> & { prefill: false }): [CRUDState<I, false>, CRUDReducer<I, K, false>];
+  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options?: CreateCRUDReducerOptions<M>): [CRUDState<I, true>, CRUDReducer<I, K, true>];
+  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options?: CreateCRUDReducerOptions<M>): [CRUDState<I, boolean>, CRUDReducer<I, K, boolean, M>];
+}
 
-export function createCRUDReducer<
+export const createCRUDReducer: CreateCRUDReducer = <
   I,
   K extends Key<I>,
   M extends CRUDActionTypes = CRUDActionTypes
 >(
   key: K,
   options?: CreateCRUDReducerOptions<M>
-): [CRUDState<I, true>, CRUDReducer<I, K, true>];
-
-export function createCRUDReducer<
-  I,
-  K extends Key<I>,
-  M extends CRUDActionTypes = CRUDActionTypes
->(
-  key: K,
-  options?: CreateCRUDReducerOptions<M>
-): [CRUDState<I, boolean>, CRUDReducer<I, K, boolean, M>] {
+): [CRUDState<I, boolean>, CRUDReducer<I, K, boolean, M>] => {
   const defaultState: CRUDState<I, boolean> = {
     byIds: {},
     ids: [],
@@ -228,7 +217,7 @@ export function createCRUDReducer<
   };
 
   return [defaultState, reducer];
-}
+};
 
 export function removeFromArray<T>(arr: T[], index: number) {
   return index < 0 ? arr : [...arr.slice(0, index), ...arr.slice(index + 1)];

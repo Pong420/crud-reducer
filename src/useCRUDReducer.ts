@@ -15,20 +15,17 @@ export type UseCRUDReducer<
   Prefill extends boolean = true
 > = () => [CRUDState<I, Prefill>, Dispatched<CRUDActionCreators<I, K>>];
 
-export function createUseCRUDReducer<I, K extends Key<I>>(
-  key: K,
-  options: CreateCRUDReducerOptions & { prefill: false }
-): UseCRUDReducer<I, K, false>;
+// prettier-ignore
+export interface CreateUseCRUDReducer  {
+  <I, K extends Key<I>>(key: K, options: CreateCRUDReducerOptions & { prefill: false }): UseCRUDReducer<I, K, false>;
+  <I, K extends Key<I>>(key: K, options?: CreateCRUDReducerOptions): UseCRUDReducer<I, K, true>;
+  <I, K extends Key<I>>(key: K, options?: CreateCRUDReducerOptions): UseCRUDReducer<I, K, boolean>
+}
 
-export function createUseCRUDReducer<I, K extends Key<I>>(
+export const createUseCRUDReducer: CreateUseCRUDReducer = <I, K extends Key<I>>(
   key: K,
   options?: CreateCRUDReducerOptions
-): UseCRUDReducer<I, K, true>;
-
-export function createUseCRUDReducer<I, K extends Key<I>>(
-  key: K,
-  options?: CreateCRUDReducerOptions
-): UseCRUDReducer<I, K, boolean> {
+): UseCRUDReducer<I, K, boolean> => {
   const [intialState, reducer] = createCRUDReducer<I, K>(key, options);
   return function useCRUDReducer() {
     const [state, dispatch] = useReducer(reducer, intialState);
@@ -38,4 +35,4 @@ export function createUseCRUDReducer<I, K extends Key<I>>(
     });
     return [state, actions];
   };
-}
+};
