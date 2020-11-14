@@ -337,4 +337,40 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
     expect(state2.list).toHaveLength(0);
     expect(state2.pageNo).toBe(1);
   });
+
+  test('insert', () => {
+    const state = crudReducer(initialState, {
+      type: actionTypes['LIST'],
+      payload: createMocks(10)
+    });
+
+    const mock1 = createMock();
+    const state1 = crudReducer(state, {
+      type: actionTypes['INSERT'],
+      payload: mock1
+    });
+    expect(state1.ids).toEqual([mock1.id, ...state.ids]);
+    expect(state1.list).toEqual([mock1, ...state.list]);
+    expect(state1.byIds).toEqual({ ...state.byIds, [mock1.id]: mock1 });
+
+    const mock2 = createMock();
+    const state2 = crudReducer(state1, {
+      type: actionTypes['INSERT'],
+      payload: mock2,
+      index: 1
+    });
+    expect(state2.ids[1]).toEqual(mock2.id);
+    expect(state2.list[1]).toEqual(mock2);
+    expect(state2.byIds[mock2.id]).toEqual(mock2);
+
+    const mock3 = createMock();
+    const state3 = crudReducer(state2, {
+      type: actionTypes['INSERT'],
+      payload: mock3,
+      index: state2.ids.length
+    });
+    expect(state3.ids).toEqual([...state2.ids, mock3.id]);
+    expect(state3.list).toEqual([...state2.list, mock3]);
+    expect(state3.byIds).toEqual({ ...state2.byIds, [mock3.id]: mock3 });
+  });
 });
