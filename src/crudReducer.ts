@@ -56,6 +56,16 @@ export function parsePaginatePayload<I>(payload: PaginatePayload<I>) {
     : payload;
 }
 
+function equals(a: any, b: any): boolean {
+  if (a === b) return true;
+  if (!a || !b || (typeof a !== 'object' && typeof b !== 'object'))
+    return a === b;
+  if (a.prototype !== b.prototype) return false;
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every(k => equals(a[k], b[k]));
+}
+
 // prettier-ignore
 export interface CreateCRUDReducer  {
   <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options: CreateCRUDReducerOptions<M> & { prefill: false }): [CRUDState<I, false>, CRUDReducer<I, K, false>];
@@ -201,10 +211,14 @@ export const createCRUDReducer: CreateCRUDReducer = <
           ? num
           : Number(value);
 
+      const newPageNo = toNum(pageNo, state.pageNo);
+      const newPageSize = toNum(pageSize, state.pageSize);
+      const hasChanged = !equals(state.params, params);
+
       return {
-        ...state,
-        pageNo: toNum(pageNo, state.pageNo),
-        pageSize: toNum(pageSize, state.pageSize),
+        ...(hasChanged ? defaultState : state),
+        pageNo: newPageNo,
+        pageSize: newPageSize,
         params
       };
     }

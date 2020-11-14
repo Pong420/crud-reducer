@@ -322,10 +322,19 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
     expect(state0.params).toEqual(restParams);
 
     const state1 = crudReducer(state0, {
-      type: actionTypes['PARAMS'],
-      payload: qs.parse(qs.stringify({ page: 'qwe' }))
+      type: actionTypes['LIST'],
+      payload: createMocks(10)
     });
 
-    expect(state1.pageNo).toBe(Number(pageNo));
+    expect(state1.list).toHaveLength(10);
+
+    const state2 = crudReducer(state1, {
+      type: actionTypes['PARAMS'],
+      payload: qs.parse(qs.stringify({ test: '123' }))
+    });
+
+    // data should be reset if params has change
+    expect(state2.list).toHaveLength(0);
+    expect(state2.pageNo).toBe(1);
   });
 });
