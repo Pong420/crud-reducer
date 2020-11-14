@@ -235,7 +235,7 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
       ).toBeTruthy();
     });
 
-    test.each([true, false])('prefill is %s', prefill => {
+    test.each([{}, false, []])('prefill is %s', prefill => {
       [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
         actionTypes,
         prefill
@@ -250,7 +250,7 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
         payload: { pageNo, data: mocks1, total: pageNo * pageSize * 2 }
       });
 
-      if (prefill) {
+      if (prefill !== false) {
         expect(state.total).toBe(total);
         expect(state.ids).toHaveLength(total);
         expect(state.list).toHaveLength(total);
@@ -269,9 +269,9 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
           )
         ).toEqual(state.ids);
 
-        expect(
-          state.list.slice(0, (pageNo - 1) * pageSize).every(i => i !== null)
-        );
+        state.list.slice(0, (pageNo - 1) * pageSize).forEach(i => {
+          expect(i).toEqual(prefill);
+        });
       } else {
         expect(state.pageNo).toBe(1);
         expect(state.total).toBe(0);
