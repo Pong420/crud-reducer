@@ -214,16 +214,18 @@ export const createCRUDReducer: CreateCRUDReducer = <
           ? num
           : Number(value);
 
-      const newPageNo = toNum(pageNo, state.pageNo);
-      const newPageSize = toNum(pageSize, state.pageSize);
+      const newPageNo = toNum(pageNo, defaultState.pageNo);
+      const newPageSize = toNum(pageSize, defaultState.pageSize);
       const hasChanged = !equals(state.params, params);
 
-      return {
-        ...(hasChanged ? defaultState : state),
-        pageNo: newPageNo,
-        pageSize: newPageSize,
-        params
-      };
+      return hasChanged
+        ? {
+            ...defaultState,
+            pageNo: newPageNo,
+            pageSize: newPageSize,
+            params
+          }
+        : { ...state, pageNo: newPageNo, pageSize: newPageSize };
     }
 
     if (isAction(actionTypes, action, 'RESET')) {

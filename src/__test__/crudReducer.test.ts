@@ -303,39 +303,93 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
     });
   });
 
-  test('params', () => {
-    const params = {
-      pageNo: '2',
-      pageSize: '20',
-      status: '1',
-      search: 'search'
-    };
-    const state0 = crudReducer(initialState, {
-      type: actionTypes['PARAMS'],
-      payload: qs.parse(qs.stringify(params))
+  describe('params', () => {
+    test('normal', () => {
+      const params = {
+        pageNo: '2',
+        pageSize: '20',
+        status: '1',
+        search: 'search'
+      };
+      const state0 = crudReducer(initialState, {
+        type: actionTypes['PARAMS'],
+        payload: qs.parse(qs.stringify(params))
+      });
+
+      const { pageNo, pageSize, ...restParams } = params;
+
+      expect(state0.pageNo).toBe(Number(pageNo));
+      expect(state0.pageSize).toBe(Number(pageSize));
+      expect(state0.params).toEqual(restParams);
     });
 
-    const { pageNo, pageSize, ...restParams } = params;
+    test('pageNo and pageSize should be reset to default is not a number', () => {
+      const params = {
+        pageNo: '2',
+        pageSize: '20'
+      };
 
-    expect(state0.pageNo).toBe(Number(pageNo));
-    expect(state0.pageSize).toBe(Number(pageSize));
-    expect(state0.params).toEqual(restParams);
+      const state0 = crudReducer(initialState, {
+        type: actionTypes['PARAMS'],
+        payload: qs.parse(qs.stringify(params))
+      });
 
-    const state1 = crudReducer(state0, {
-      type: actionTypes['LIST'],
-      payload: createMocks(10)
+      expect(state0.pageNo).toBe(Number(params.pageNo));
+      expect(state0.pageSize).toBe(Number(params.pageSize));
+
+      const state1 = crudReducer(state0, {
+        type: actionTypes['PARAMS'],
+        payload: { test: '' }
+      });
+
+      expect(state1.pageNo).toBe(initialState.pageNo);
+      expect(state1.pageSize).toBe(initialState.pageSize);
     });
 
-    expect(state1.list).toHaveLength(10);
+    test('state should be reset if params has change', () => {
+      const state0 = crudReducer(initialState, {
+        type: actionTypes['LIST'],
+        payload: createMocks(10)
+      });
 
-    const state2 = crudReducer(state1, {
-      type: actionTypes['PARAMS'],
-      payload: qs.parse(qs.stringify({ test: '123' }))
+      expect(state0.list).toHaveLength(10);
+
+      const state1 = crudReducer(state0, {
+        type: actionTypes['PARAMS'],
+        payload: qs.parse(qs.stringify({ test: '123' }))
+      });
+
+      expect(state1.list).toHaveLength(0);
+      expect(state1.pageNo).toBe(1);
+      expect(state1.pageSize).toBe(initialState.pageSize);
     });
+    test('change pageNo and pageSize will not reset state', () => {
+      const total = 5;
+      const state0 = crudReducer(initialState, {
+        type: actionTypes['LIST'],
+        payload: createMocks(total)
+      });
 
-    // data should be reset if params has change
-    expect(state2.list).toHaveLength(0);
-    expect(state2.pageNo).toBe(1);
+      expect(state0.list).toHaveLength(total);
+
+      const state1 = crudReducer(state0, {
+        type: actionTypes['PARAMS'],
+        payload: qs.parse(qs.stringify({ pageNo: 2 }))
+      });
+
+      expect(state1.list).toHaveLength(total);
+      expect(state1.pageNo).toBe(2);
+      expect(state1.pageSize).toBe(state0.pageSize);
+
+      const state2 = crudReducer(state1, {
+        type: actionTypes['PARAMS'],
+        payload: qs.parse(qs.stringify({ pageNo: state1.pageNo, pageSize: 20 }))
+      });
+
+      expect(state2.list).toHaveLength(total);
+      expect(state2.pageNo).toBe(state1.pageNo);
+      expect(state2.pageSize).toBe(20);
+    });
   });
 
   test('insert', () => {
