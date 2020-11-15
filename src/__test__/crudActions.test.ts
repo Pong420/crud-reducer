@@ -13,6 +13,11 @@ describe('actions', () => {
     expect(actions.paginate([])).toEqual({ type: 'PAGINATE', payload: [] });
     expect(actions.params(payload)).toEqual({ type: 'PARAMS', payload });
     expect(actions.reset()).toEqual({ type: 'RESET' });
+    expect(actions.insert(payload, 0)).toEqual({
+      type: 'INSERT',
+      payload,
+      index: 0
+    });
   });
 
   test('custom action types', () => {
@@ -24,7 +29,8 @@ describe('actions', () => {
       DELETE: 'DELETE_TODO',
       PAGINATE: 'PAGINATE_TODO',
       PARAMS: 'PARAMS_TODO',
-      RESET: 'RESET_TODO'
+      RESET: 'RESET_TODO',
+      INSERT: 'INSERT_TODO'
     });
 
     expect(actions).toBeDefined();
@@ -38,6 +44,7 @@ describe('actions', () => {
     });
     expect(actions.params(payload)).toEqual({ type: 'PARAMS_TODO', payload });
     expect(actions.reset()).toEqual({ type: 'RESET_TODO' });
+    expect(actions.insert(payload)).toEqual({ type: 'INSERT_TODO', payload });
 
     // --------------------------------------------------------------------------------------------------
 
