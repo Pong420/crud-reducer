@@ -36,7 +36,6 @@ export interface CreateCRUDReducerOptions<
 > {
   prefill?: Prefill;
   actionTypes?: M;
-  params?: Record<string, any>;
   keyGenerator?: (index: number) => string;
 }
 
@@ -98,7 +97,7 @@ export const createCRUDReducer: CreateCRUDReducer = <
     pageNo: 1,
     pageSize: 10,
     total: 0,
-    params: options?.params || {}
+    params: {}
   };
 
   const {
@@ -163,7 +162,7 @@ export const createCRUDReducer: CreateCRUDReducer = <
       return (action as List<'', I>).payload.reduce(
         (state, payload) =>
           reducer(state, { type: actionTypes['CREATE'], payload }),
-        defaultState
+        { ...state, list: [], ids: [], byIds: {} } as CRUDState<I, any>
       );
     }
 
