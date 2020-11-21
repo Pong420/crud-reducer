@@ -17,7 +17,7 @@ export interface CRUDState<I, Prefill extends any = null> {
   pageNo: number;
   pageSize: number;
   total: number;
-  params: any;
+  params: Record<string, any>;
 }
 
 export type CRUDReducer<
@@ -36,6 +36,7 @@ export interface CreateCRUDReducerOptions<
 > {
   prefill?: Prefill;
   actionTypes?: M;
+  params?: Record<string, any>;
   keyGenerator?: (index: number) => string;
 }
 
@@ -97,7 +98,7 @@ export const createCRUDReducer: CreateCRUDReducer = <
     pageNo: 1,
     pageSize: 10,
     total: 0,
-    params: {}
+    params: options?.params || {}
   };
 
   const {
