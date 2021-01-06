@@ -10,10 +10,10 @@ import {
   List
 } from './crudAction';
 
-export interface CRUDState<I, Prefill extends any = null> {
+export interface CRUDState<I, Prefill extends boolean = true> {
   ids: string[];
   byIds: Record<string, I>;
-  list: Prefill extends false ? I[] : (I | Prefill)[];
+  list: Prefill extends true ? (I | Partial<I>)[] : I[];
   pageNo: number;
   pageSize: number;
   total: number;
@@ -23,7 +23,7 @@ export interface CRUDState<I, Prefill extends any = null> {
 export type CRUDReducer<
   I,
   K extends Key<I>,
-  Prefill extends any = null,
+  Prefill extends boolean = true,
   M extends CRUDActionTypes = CRUDActionTypes
 > = (
   state: CRUDState<I, Prefill>,
@@ -37,6 +37,7 @@ export interface CreateCRUDReducerOptions<
   prefill?: Prefill;
   actionTypes?: M;
   keyGenerator?: (index: number) => string;
+  defaultState?: Partial<CRUDState<any, any>>;
 }
 
 export const defaultKeyGenerator = (() => {
@@ -70,8 +71,8 @@ export function equals(a: any, b: any): boolean {
 // prettier-ignore
 export interface CreateCRUDReducer  {
   <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options: CreateCRUDReducerOptions<false, M> & { prefill: false }): [CRUDState<I, false>, CRUDReducer<I, K, false, M>];
-  <I, K extends Key<I>, Prefill = any, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options: CreateCRUDReducerOptions<Prefill, M> & { prefill: Prefill }): [CRUDState<I, Prefill>, CRUDReducer<I, K, Prefill, M>];
-  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options?: CreateCRUDReducerOptions<null, M>): [CRUDState<I, null>, CRUDReducer<I, K, null, M>];
+  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options?: CreateCRUDReducerOptions<true, M>): [CRUDState<I, true>, CRUDReducer<I, K, true, M>];
+  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options?: CreateCRUDReducerOptions<boolean, M>): [CRUDState<I, true>, CRUDReducer<I, K, boolean, M>];
 }
 
 const insertHanlder = (from: number, to: number) => <T1, T2>(
@@ -81,30 +82,49 @@ const insertHanlder = (from: number, to: number) => <T1, T2>(
   return [...arr.slice(0, from), ...ids, ...arr.slice(to)];
 };
 
+export const DefaultState: CRUDState<any, any> = {
+  byIds: {},
+  ids: [],
+  list: [],
+  pageNo: 1,
+  pageSize: 10,
+  total: 0,
+  params: {}
+};
+
+export function createPlaceholder<I, K extends Key<I>>(
+  key: K,
+  length: number,
+  keyGenerator: (idx: number) => string = defaultKeyGenerator
+) {
+  return {
+    ids: Array.from({ length }, (_, index) => keyGenerator(index)),
+    list: Array.from(
+      { length },
+      (_, index) => (({ [key]: keyGenerator(index) } as unknown) as Partial<I>)
+    )
+  };
+}
+
 export const createCRUDReducer: CreateCRUDReducer = <
   I,
   K extends Key<I>,
-  Prefill extends any = any,
+  Prefill extends boolean = true,
   M extends CRUDActionTypes = CRUDActionTypes
 >(
   key: K,
   options?: CreateCRUDReducerOptions<Prefill, M>
-): [CRUDState<I, Prefill>, CRUDReducer<I, K, Prefill, M>] => {
-  const defaultState: CRUDState<I, any> = {
-    byIds: {},
-    ids: [],
-    list: [],
-    pageNo: 1,
-    pageSize: 10,
-    total: 0,
-    params: {}
-  };
-
+): [CRUDState<I, boolean>, CRUDReducer<I, K, boolean, M>] => {
   const {
-    prefill = null,
+    prefill = true,
     keyGenerator = defaultKeyGenerator,
     actionTypes = DefaultCRUDActionTypes as M
   } = options || {};
+
+  const defaultState = {
+    ...DefaultState,
+    ...options?.defaultState
+  } as CRUDState<I, any>;
 
   const reducer: CRUDReducer<I, K, Prefill, M> = (
     state = defaultState,
@@ -134,6 +154,8 @@ export const createCRUDReducer: CreateCRUDReducer = <
 
         const length = total - state.ids.length;
 
+        const placeholder = createPlaceholder<I, K>(key, length, keyGenerator);
+
         return {
           ...state,
           total,
@@ -143,17 +165,8 @@ export const createCRUDReducer: CreateCRUDReducer = <
             ...state.byIds,
             ...byIds
           },
-          ids: insert(
-            [
-              ...state.ids,
-              ...Array.from({ length }, (_, index) => keyGenerator(index))
-            ],
-            ids
-          ),
-          list: insert(
-            [...state.list, ...Array.from({ length }, () => prefill)],
-            list
-          )
+          ids: insert([...state.ids, ...placeholder.ids], ids),
+          list: insert([...state.list, ...placeholder.list], list)
         };
       })();
     }
@@ -168,12 +181,15 @@ export const createCRUDReducer: CreateCRUDReducer = <
 
     if (isAction(actionTypes, action, 'CREATE')) {
       const id = (action.payload[key] as unknown) as string;
-      const pageNo = Math.ceil((state.total + 1) / state.pageSize);
+      const total = state.total + 1;
+
+      // naviagte to the new item pageNo
+      const pageNo = Math.ceil(total / state.pageSize);
 
       return {
         ...state,
         pageNo,
-        total: state.total + 1,
+        total,
         byIds: { ...state.byIds, [id]: action.payload },
         list: [...state.list, action.payload],
         ids: [...state.ids, id]
@@ -203,7 +219,11 @@ export const createCRUDReducer: CreateCRUDReducer = <
       const byIds = { ...state.byIds };
       delete byIds[id];
 
-      const pageNo = Math.ceil((state.total - 1) / state.pageSize);
+      const total = state.total - 1;
+
+      // naviagte to preview page if current is not exists
+      const totalPage = Math.ceil(total / state.pageSize);
+      const pageNo = Math.min(totalPage, state.pageNo);
 
       return {
         ...state,
@@ -244,12 +264,15 @@ export const createCRUDReducer: CreateCRUDReducer = <
       const { payload, index = 0 } = action;
       const insert = insertHanlder(index, index);
       const id = (action.payload[key] as unknown) as string;
-      const pageNo = Math.ceil((index + 1) / state.pageSize);
+      const total = state.total + 1;
+
+      // naviagte to the new item pageNo
+      const pageNo = Math.ceil(index / state.pageSize);
 
       return {
         ...state,
         pageNo,
-        total: state.total + 1,
+        total,
         ids: insert(state.ids, [id]),
         list: insert(state.list, [payload]),
         byIds: { ...state.byIds, [id]: payload }
