@@ -33,7 +33,7 @@ const testOptions = [
 ] as const;
 
 describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
-  let [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
+  const [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
     actionTypes
   });
 
@@ -115,6 +115,9 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
       payload: mock
     });
 
+    expect(state0.total).toEqual(1);
+    expect(state0.pageNo).toEqual(1);
+
     const state1 = crudReducer(state0, {
       type: actionTypes['DELETE'],
       payload: { id: mock.id }
@@ -130,7 +133,7 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
       payload: { id: 'qwe' }
     });
 
-    expect(state1).toEqual(state2);
+    expect(state1).toEqual({ ...state2, total: 0, pageNo: 1 });
   });
 
   test('reset', () => {
@@ -152,7 +155,7 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
   });
 
   describe('pagination', () => {
-    test('normal', () => {
+    test('basic', () => {
       const mocks1 = createMocks(10);
       const state0 = crudReducer(initialState, {
         type: actionTypes['PAGINATE'],
@@ -213,10 +216,10 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
     });
 
     test('keyGenerator', () => {
-      [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
-        actionTypes,
-        keyGenerator: index => `idx-${index}`
-      });
+      const [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>(
+        'id',
+        { actionTypes, keyGenerator: index => `idx-${index}` }
+      );
 
       const mocks = createMocks(10);
       const total = mocks.length * 5;
@@ -235,49 +238,24 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
       ).toBeTruthy();
     });
 
-    test.each([{}, false, []])('prefill is %s', prefill => {
-      [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
-        actionTypes,
-        prefill
-      });
+    test('prefill is false', () => {
+      const [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>(
+        'id',
+        { actionTypes, prefill: false }
+      );
 
       const mocks1 = createMocks(10);
       const pageNo = 4;
       const pageSize = 10;
-      const total = pageNo * pageSize * 2;
       const state = crudReducer(initialState, {
         type: actionTypes['PAGINATE'],
         payload: { pageNo, data: mocks1, total: pageNo * pageSize * 2 }
       });
 
-      if (prefill !== false) {
-        expect(state.total).toBe(total);
-        expect(state.ids).toHaveLength(total);
-        expect(state.list).toHaveLength(total);
-
-        expect(
-          state.ids
-            .slice(0, (pageNo - 1) * pageSize)
-            .every(i => typeof i === 'string')
-        );
-
-        // should not duplicated
-        expect(
-          state.ids.reduce(
-            (ids, id) => (ids.includes(id) ? ids : [...ids, id]),
-            [] as string[]
-          )
-        ).toEqual(state.ids);
-
-        state.list.slice(0, (pageNo - 1) * pageSize).forEach(i => {
-          expect(i).toEqual(prefill);
-        });
-      } else {
-        expect(state.pageNo).toBe(1);
-        expect(state.total).toBe(0);
-        expect(state.ids).toHaveLength(mocks1.length);
-        expect(state.list).toHaveLength(mocks1.length);
-      }
+      expect(state.pageNo).toBe(1);
+      expect(state.total).toBe(mocks1.length);
+      expect(state.ids).toHaveLength(mocks1.length);
+      expect(state.list).toHaveLength(mocks1.length);
     });
 
     test('prefill typings', () => {
@@ -287,12 +265,19 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
       );
 
       const mock = createMock();
-      let state = crudReducer(initialState, { type: 'CREATE', payload: mock });
+      let state = crudReducer(initialState, {
+        type: actionTypes['CREATE'],
+        payload: mock
+      });
+
+      expect(state.total).toBe(1);
+
       state.list.map(item => {
-        state = crudReducer(initialState, {
+        state = crudReducer(state, {
           type: actionTypes['UPDATE'],
           payload: { ...item, value: '123123' }
         });
+
         state = crudReducer(initialState, {
           type: actionTypes['DELETE'],
           payload: { ...item, id: mock.id }

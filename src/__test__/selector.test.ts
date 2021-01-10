@@ -29,6 +29,7 @@ describe('selector', () => {
       const pageSize = 10;
       const total = pageSize * 10;
       const mocks0 = createMocks(pageSize);
+
       const state0 = crudReducer(initialState, {
         type: 'PAGINATE',
         payload: {
