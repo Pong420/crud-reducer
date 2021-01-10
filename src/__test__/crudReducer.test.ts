@@ -412,4 +412,47 @@ describe.each(testOptions)('crud reducer - %s', (_, actionTypes) => {
     expect(state3.list).toEqual([...state2.list, mock3]);
     expect(state3.byIds).toEqual({ ...state2.byIds, [mock3.id]: mock3 });
   });
+
+  test('pageNo update correctly after create/insert/delete', () => {
+    const [initialState, crudReducer] = createCRUDReducer<Schema, 'id'>('id', {
+      actionTypes
+    });
+
+    let state = crudReducer(initialState, {
+      type: actionTypes['PAGINATE'],
+      payload: createMocks(initialState.pageSize)
+    });
+    expect(state.list.length).toBe(initialState.pageSize);
+
+    let mock = createMock();
+    state = crudReducer(state, {
+      type: actionTypes['CREATE'],
+      payload: mock
+    });
+    expect(state.pageNo).toBe(2);
+
+    state = crudReducer(state, {
+      type: actionTypes['DELETE'],
+      payload: mock
+    });
+    expect(state.pageNo).toBe(1);
+
+    mock = createMock();
+    state = crudReducer(state, {
+      type: actionTypes['INSERT'],
+      payload: mock,
+      index: initialState.pageSize
+    });
+    expect(state.list[initialState.pageSize]).toEqual(mock);
+    expect(state.pageNo).toBe(2);
+
+    mock = createMock();
+    state = crudReducer(state, {
+      type: actionTypes['INSERT'],
+      payload: mock,
+      index: 1
+    });
+    expect(state.list[1]).toEqual(mock);
+    expect(state.pageNo).toBe(1);
+  });
 });

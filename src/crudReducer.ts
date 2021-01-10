@@ -267,12 +267,12 @@ export const createCRUDReducer: CreateCRUDReducer = <
       const total = state.total + 1;
 
       // naviagte to the new item pageNo
-      const pageNo = Math.ceil(index / state.pageSize);
+      const pageNo = Math.ceil((index + 1) / state.pageSize);
 
       return {
         ...state,
-        pageNo,
         total,
+        pageNo,
         ids: insert(state.ids, [id]),
         list: insert(state.list, [payload]),
         byIds: { ...state.byIds, [id]: payload }
