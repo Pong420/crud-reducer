@@ -9,6 +9,7 @@ export type AllowedNames<Base, Condition> = FilterFlags<
 >[keyof Base];
 
 export type Key<I> = AllowedNames<I, string>;
+export type ValueOf<T> = T[keyof T];
 
 export interface AnyAction {
   type: string;
@@ -41,17 +42,10 @@ export type PaginatePayload<I> =
       pageSize?: number;
     };
 
-type FilterType<
-  F extends string,
-  T extends BasicCRUDActionType
-> = F extends `${infer P}_${T}` ? `${P}_${T}` : never;
-
 export type ExtractType<
   F extends string,
   T extends BasicCRUDActionType
-> = FilterType<F, T> extends undefined ? T : FilterType<F, T>;
-
-type T1 = ExtractType<CRUDActionType, 'LIST'>;
+> = F extends `${infer P}_${T}` ? `${P}_${T}` : T;
 
 export type List<T extends CRUDActionType, I> = {
   type: ExtractType<T, 'LIST'>;
@@ -108,11 +102,20 @@ export type CRUDActionCreators<
   reset: () => Reset<T>;
 };
 
+export type CRUDActions<I, K extends Key<I>, P extends string> = ReturnType<
+  ValueOf<CRUDActionCreators<I, K, CRUDActionType<P>>>
+>;
+
+export const createType = <T extends BasicCRUDActionType>(
+  type: T,
+  prefix?: string
+) => (prefix ? (`${prefix}_${type}` as `${string}_${T}`) : type);
+
 export function createCRUDActionsCreators<I, K extends Key<I>>(
   prefix?: string
 ) {
   const getType = <T extends BasicCRUDActionType>(type: T) =>
-    (prefix ? `${prefix}_${type}` : type) as `${string}_${T}`;
+    createType(type, prefix);
 
   const creators: CRUDActionCreators<I, K, CRUDActionType> = {
     list: payload => ({ type: getType('LIST'), payload }),

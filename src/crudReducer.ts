@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
-import {
-  Key,
-  CRUDActions,
-  CRUDActionTypes,
-  PaginatePayload,
-  DefaultCRUDActionTypes,
-  isAction,
-  List
-} from './crudAction';
+import { Key, PaginatePayload, List, CRUDActions } from './_curdActions';
 
 export interface CRUDState<I, Prefill extends boolean = true> {
   ids: string[];
@@ -20,22 +12,13 @@ export interface CRUDState<I, Prefill extends boolean = true> {
   params: Record<string, any>;
 }
 
-export type CRUDReducer<
-  I,
-  K extends Key<I>,
-  Prefill extends boolean = true,
-  M extends CRUDActionTypes = CRUDActionTypes
-> = (
+export type CRUDReducer<I, K extends Key<I>, Prefill extends boolean = true> = (
   state: CRUDState<I, Prefill>,
-  action: CRUDActions<I, K, M>
+  action: CRUDActions<I, K, string>
 ) => CRUDState<I, Prefill>;
 
-export interface CreateCRUDReducerOptions<
-  Prefill extends boolean = true,
-  M extends CRUDActionTypes = CRUDActionTypes
-> {
+export interface CreateCRUDReducerOptions<Prefill extends boolean = true> {
   prefill?: Prefill;
-  actionTypes?: M;
   keyGenerator?: (index: number) => string;
   defaultState?: Partial<CRUDState<any, any>>;
 }
@@ -70,9 +53,9 @@ export function equals(a: any, b: any): boolean {
 
 // prettier-ignore
 export interface CreateCRUDReducer  {
-  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options: CreateCRUDReducerOptions<false, M> & { prefill: false }): [CRUDState<I, false>, CRUDReducer<I, K, false, M>];
-  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options?: CreateCRUDReducerOptions<true, M>): [CRUDState<I, true>, CRUDReducer<I, K, true, M>];
-  <I, K extends Key<I>, M extends CRUDActionTypes = CRUDActionTypes>(key: K, options?: CreateCRUDReducerOptions<boolean, M>): [CRUDState<I, true>, CRUDReducer<I, K, boolean, M>];
+  <I, K extends Key<I>,>(key: K, options: CreateCRUDReducerOptions<false> & { prefill: false }): [CRUDState<I, false>, CRUDReducer<I, K, false>];
+  <I, K extends Key<I>,>(key: K, options?: CreateCRUDReducerOptions<true>): [CRUDState<I, true>, CRUDReducer<I, K, true>];
+  <I, K extends Key<I>,>(key: K, options?: CreateCRUDReducerOptions<boolean>): [CRUDState<I, true>, CRUDReducer<I, K, boolean>];
 }
 
 const insertHanlder = (from: number, to: number) => <T1, T2>(
