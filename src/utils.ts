@@ -1,4 +1,4 @@
-import { Key, PaginatePayload } from './curdAction';
+import { Key, PaginatePayload } from './crudAction';
 
 export const defaultIdGenerator = (() => {
   let count = 0;
@@ -17,7 +17,7 @@ export function createPlaceholder<I, K extends Key<I>>(
     ids: Array.from({ length }, (_, index) => idGenerator(index)),
     list: Array.from(
       { length },
-      (_, index) => (({ [key]: idGenerator(index) } as unknown) as Partial<I>)
+      (_, index) => ({ [key]: idGenerator(index) } as unknown as Partial<I>)
     )
   };
 }
@@ -32,12 +32,11 @@ export function parsePaginatePayload<I>(payload: PaginatePayload<I>) {
     : payload;
 }
 
-export const createInsert = (from: number, to: number) => <T1, T2>(
-  arr: T1[],
-  ids: T2[]
-) => {
-  return [...arr.slice(0, from), ...ids, ...arr.slice(to)];
-};
+export const createInsert =
+  (from: number, to: number) =>
+  <T1, T2>(arr: T1[], ids: T2[]) => {
+    return [...arr.slice(0, from), ...ids, ...arr.slice(to)];
+  };
 
 export function removeFromArray<T>(arr: T[], index: number) {
   return index < 0 ? arr : [...arr.slice(0, index), ...arr.slice(index + 1)];

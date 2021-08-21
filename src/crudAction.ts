@@ -50,22 +50,26 @@ export enum CrudActionType {
 export type CrudActionCreators<I, K extends Key<I>> = {
   list(payload: I[]): { type: CrudActionType.List; payload: I[] };
   create(payload: I): { type: CrudActionType.Create; payload: I };
-  update(
-    payload: UpdatePayload<I, K>
-  ): { type: CrudActionType.Update; payload: UpdatePayload<I, K> };
+  update(payload: UpdatePayload<I, K>): {
+    type: CrudActionType.Update;
+    payload: UpdatePayload<I, K>;
+  };
   insert(
     payload: I,
     index?: number
   ): { type: CrudActionType.Insert; payload: I; index?: number };
-  delete(
-    payload: { [T in K]: string }
-  ): { type: CrudActionType.Delete; payload: { [T in K]: string } };
-  paginate(
-    payload: PaginatePayload<I>
-  ): { type: CrudActionType.Paginate; payload: PaginatePayload<I> };
-  params(
-    payload: Record<string, any>
-  ): { type: CrudActionType.Params; payload: Record<string, any> };
+  delete(payload: { [T in K]: string }): {
+    type: CrudActionType.Delete;
+    payload: { [T in K]: string };
+  };
+  paginate(payload: PaginatePayload<I>): {
+    type: CrudActionType.Paginate;
+    payload: PaginatePayload<I>;
+  };
+  params(payload: Record<string, any>): {
+    type: CrudActionType.Params;
+    payload: Record<string, any>;
+  };
   reset(): { type: CrudActionType.Reset };
 };
 

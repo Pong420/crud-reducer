@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { ActionCreators } from './curdAction';
+import { ActionCreators } from './crudAction';
 import { Dispatched, bindDispatch } from './bindDispatch';
 
 export function useActions<A extends ActionCreators>(

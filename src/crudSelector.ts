@@ -1,4 +1,4 @@
-import { CrudState } from './curdReducer';
+import { CrudState } from './crudReducer';
 
 export interface PaginateState<S extends CrudState<any, any>> {
   ids: S['ids'];

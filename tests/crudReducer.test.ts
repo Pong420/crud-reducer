@@ -1,5 +1,5 @@
-import { createCrudActionCreator } from '../src/curdAction';
-import { createCrudReducer } from '../src/curdReducer';
+import { createCrudActionCreator } from '../src/crudAction';
+import { createCrudReducer } from '../src/crudReducer';
 import qs from 'qs';
 
 interface Schema {

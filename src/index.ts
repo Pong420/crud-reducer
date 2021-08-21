@@ -1,5 +1,5 @@
 export * from './bindDispatch';
-export * from './curdAction';
+export * from './crudAction';
 export * from './crudSelector';
 export * from './crudSelector';
 export * from './useActions';

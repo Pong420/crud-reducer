@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import { useReducer, useState } from 'react';
-import { Key, CrudActionCreators, createCrudActionCreator } from './curdAction';
+import { Key, CrudActionCreators, createCrudActionCreator } from './crudAction';
 import {
   CrudState,
   CrudReducer,
   CreateCrudReducerOptions,
   createCrudReducer
-} from './curdReducer';
+} from './crudReducer';
 import { bindDispatch, Dispatched } from './bindDispatch';
 
 export type UseCrudReducer<

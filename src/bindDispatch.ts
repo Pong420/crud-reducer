@@ -1,5 +1,5 @@
 import { Dispatch } from 'react';
-import { ActionCreators } from './curdAction';
+import { ActionCreators } from './crudAction';
 
 export type Dispatched<A extends ActionCreators> = {
   [X in keyof A]: (...args: Parameters<A[X]>) => void;

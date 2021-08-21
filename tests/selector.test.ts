@@ -1,5 +1,5 @@
-import { createCrudActionCreator } from '../src/curdAction';
-import { CrudReducer, CrudState, createCrudReducer } from '../src/curdReducer';
+import { createCrudActionCreator } from '../src/crudAction';
+import { CrudReducer, CrudState, createCrudReducer } from '../src/crudReducer';
 import { paginateSelector } from '../src/crudSelector';
 
 interface Schema {

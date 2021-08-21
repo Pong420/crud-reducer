@@ -1,4 +1,4 @@
-import { createCrudActionCreator } from '../src/curdAction';
+import { createCrudActionCreator } from '../src/crudAction';
 
 describe('actions', () => {
   test('default action type', () => {

@@ -3,7 +3,7 @@ import {
   CrudActions,
   CrudActionCreators,
   createCrudActionCreator
-} from './curdAction';
+} from './crudAction';
 import {
   parsePaginatePayload,
   createPlaceholder,
@@ -140,7 +140,7 @@ export const createCrudReducer: CreateCrudReducer = <
       case 'Insert': {
         const { payload, index = 0 } = action;
         const insert = createInsert(index, index);
-        const id = (action.payload[key] as unknown) as string;
+        const id = action.payload[key] as unknown as string;
         const total = state.total + 1;
 
         // naviagte to the page no of the new item
