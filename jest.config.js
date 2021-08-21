@@ -1,5 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
+  collectCoverage: true,
   testEnvironment: 'jsdom',
-  collectCoverage: true
+  testRegex: '.test.ts$',
+  testPathIgnorePatterns: ['/node_modules/']
 };

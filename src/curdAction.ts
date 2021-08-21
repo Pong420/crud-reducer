@@ -78,13 +78,13 @@ export function createCrudActionCreator<I, K extends Key<I>>(
 ): CrudActionCreators<I, K> {
   const map = CrudActionType as CrudActionMap;
   const types = <T extends CrudActionType>(type: T) => {
-    return map[map[type]] as T;
+    return map[type] as T;
   };
 
   if (prefix) {
     for (const _key in map) {
       const key = _key as CrudActionType;
-      const prefixed = `${prefix}_${map[key]}`;
+      const prefixed = `${prefix}-${map[key]}`;
       map[key] = prefixed;
       map[prefixed] = key;
     }
