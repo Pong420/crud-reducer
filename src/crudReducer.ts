@@ -1,9 +1,4 @@
-import {
-  Key,
-  CrudActions,
-  CrudActionCreators,
-  createCrudActionCreator
-} from './crudAction';
+import { Key, CrudActions, CrudActionMap, CrudActionType } from './crudAction';
 import {
   parsePaginatePayload,
   createPlaceholder,
@@ -34,7 +29,7 @@ export interface CreateCrudReducerOptions<
   Prefill extends boolean = true
 > {
   prefill?: Prefill;
-  actionCreators?: CrudActionCreators<I, K>;
+  map?: CrudActionMap;
   idGenerator?: (index: number) => string;
   defaultState?: Partial<CrudState<I, Prefill>>;
 }
@@ -67,7 +62,7 @@ export const createCrudReducer: CreateCrudReducer = <
   const {
     prefill = true,
     idGenerator = defaultIdGenerator,
-    actionCreators = createCrudActionCreator<I, K>()
+    map = CrudActionType
   } = options || {};
 
   const defaultState = {
@@ -77,24 +72,29 @@ export const createCrudReducer: CreateCrudReducer = <
 
   const reducer: CrudReducer<I, K, boolean> = (
     state = defaultState,
-    action
+    _action
   ) => {
+    const action: CrudActions<I, K> = {
+      ..._action,
+      type: (map[_action.type] as any) || _action.type
+    };
+
     switch (action.type) {
       case 'Paginate': {
         const payload = parsePaginatePayload(action.payload);
         const { data, pageNo, total, pageSize = state.pageSize } = payload;
 
         if (prefill === false) {
-          return reducer(state, actionCreators.list(data));
+          return reducer(state, { type: CrudActionType.List, payload: data });
         }
 
         const start = (pageNo - 1) * pageSize;
         const insert = createInsert(start, start + pageSize);
 
-        const { list, ids, byIds } = reducer(
-          defaultState,
-          actionCreators.list(data)
-        );
+        const { list, ids, byIds } = reducer(defaultState, {
+          type: CrudActionType.List,
+          payload: data
+        });
 
         const length = total - state.ids.length;
         const placeholder = createPlaceholder<I, K>(key, length, idGenerator);
@@ -115,7 +115,8 @@ export const createCrudReducer: CreateCrudReducer = <
 
       case 'List': {
         return action.payload.reduce(
-          (state, payload) => reducer(state, actionCreators.create(payload)),
+          (state, payload) =>
+            reducer(state, { type: CrudActionType.Create, payload }),
           { ...state, list: [], ids: [], byIds: {} } as CrudState<I, boolean>
         );
       }

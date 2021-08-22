@@ -1,7 +1,5 @@
 export type CrudActionMap = {
   [x: string]: CrudActionType;
-} & {
-  [K in CrudActionType]: string;
 };
 
 export type FilterFlags<Base, Condition> = {
@@ -77,47 +75,49 @@ export type CrudActions<I, K extends Key<I>> = ReturnType<
   CrudActionCreators<I, K>[keyof CrudActionCreators<I, K>]
 >;
 
-export function createCrudActionCreator<I, K extends Key<I>>(
-  prefix?: string
-): CrudActionCreators<I, K> {
-  const map = CrudActionType as CrudActionMap;
-  const types = <T extends CrudActionType>(type: T) => {
-    return map[type] as T;
-  };
+type RemoveType<C extends ActionCreators> = {
+  [K in keyof C]: (
+    ...args: Parameters<C[K]>
+  ) => Omit<ReturnType<C[K]>, 'type'> & { type: string };
+};
+
+export function createCrudActionCreator<I, K extends Key<I>>(prefix?: string) {
+  const map = { ...CrudActionType } as CrudActionMap;
 
   if (prefix) {
     for (const _key in map) {
       const key = _key as CrudActionType;
       const prefixed = `${prefix}-${map[key]}`;
-      map[key] = prefixed;
       map[prefixed] = key;
     }
   }
 
-  return {
+  const creators: RemoveType<CrudActionCreators<I, K>> = {
     list(payload: I[]) {
-      return { type: types(CrudActionType.List), payload };
+      return { type: map[CrudActionType.List], payload };
     },
     create(payload: I) {
-      return { type: types(CrudActionType.Create), payload };
+      return { type: map[CrudActionType.Create], payload };
     },
     insert(payload: I, index?: number) {
-      return { type: types(CrudActionType.Insert), payload, index };
+      return { type: map[CrudActionType.Insert], payload, index };
     },
     update(payload: UpdatePayload<I, K>) {
-      return { type: types(CrudActionType.Update), payload };
+      return { type: map[CrudActionType.Update], payload };
     },
     delete(payload: { [T in K]: string }) {
-      return { type: types(CrudActionType.Delete), payload };
+      return { type: map[CrudActionType.Delete], payload };
     },
     paginate(payload: PaginatePayload<I>) {
-      return { type: types(CrudActionType.Paginate), payload };
+      return { type: map[CrudActionType.Paginate], payload };
     },
     params(payload: Record<string, any>) {
-      return { type: types(CrudActionType.Params), payload };
+      return { type: map[CrudActionType.Params], payload };
     },
     reset() {
-      return { type: types(CrudActionType.Reset) };
+      return { type: map[CrudActionType.Reset] };
     }
   };
+
+  return [map, creators] as const;
 }
