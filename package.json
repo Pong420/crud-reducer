@@ -6,13 +6,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint 'src/**/*.{ts,tsx}'",
-    "test": "yarn jest"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn test && sh ./deploy.sh"
-    }
+    "test": "yarn jest -i --bail",
+    "prepare": "husky install"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
@@ -21,24 +16,24 @@
     ]
   },
   "devDependencies": {
-    "@testing-library/react-hooks": "^3.4.2",
-    "@types/jest": "^26.0.14",
-    "@types/qs": "^6.9.5",
-    "@types/react": "^16.9.53",
-    "@types/react-redux": "^7.1.9",
-    "@typescript-eslint/eslint-plugin": "4.4.1",
-    "@typescript-eslint/parser": "4.4.1",
-    "eslint": "7.11.0",
-    "eslint-config-prettier": "6.13.0",
-    "eslint-plugin-react-hooks": "^4.1.2",
-    "husky": "^4.3.0",
-    "jest": "^26.5.3",
-    "lint-staged": "^10.4.2",
-    "prettier": "^2.1.2",
-    "qs": "^6.9.4",
-    "react": "^16.14.0",
-    "react-test-renderer": "^16.14.0",
-    "ts-jest": "^26.4.1",
-    "typescript": "4.0.3"
+    "@testing-library/react-hooks": "^7.0.1",
+    "@types/jest": "^27.0.1",
+    "@types/qs": "^6.9.7",
+    "@types/react": "^17.0.19",
+    "@types/react-redux": "^7.1.18",
+    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@typescript-eslint/parser": "4.29.2",
+    "eslint": "7.32.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "husky": "^7.0.1",
+    "jest": "^27.0.6",
+    "lint-staged": "^11.1.2",
+    "prettier": "^2.3.2",
+    "qs": "^6.10.1",
+    "react": "^17.0.2",
+    "react-test-renderer": "^17.0.2",
+    "ts-jest": "^27.0.5",
+    "typescript": "4.3.5"
   }
 }
